@@ -471,23 +471,22 @@ ul, ol { list-style: none; }
 .qt-hero__inner {
   position: relative;
   z-index: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding-bottom: var(--qt-2xl);
-  padding-top: 100px;
+  padding-top: 96px;
   padding-inline: var(--qt-xl);
   max-width: 1360px;
   margin-inline: auto;
   width: 100%;
-  min-height: 0;
-  overflow: hidden;
 }
 .qt-hero__kicker {
   display: flex;
   align-items: center;
   gap: var(--qt-sm);
-  margin-bottom: var(--qt-lg);
+  margin-bottom: var(--qt-md);
 }
 .qt-hero__kicker-dot {
   width: 8px; height: 8px;
@@ -512,26 +511,26 @@ ul, ol { list-style: none; }
 }
 .qt-hero__headline em { font-style: normal; color: var(--qt-accent); }
 .qt-hero__sub {
-  margin-top: var(--qt-lg);
-  font-size: var(--qt-text-md);
+  margin-top: var(--qt-md);
+  font-size: 1rem;
   font-weight: 400;
   color: var(--qt-ink-2);
-  max-width: 480px;
-  line-height: 1.5;
+  max-width: 460px;
+  line-height: 1.6;
 }
 
 /* Countdown */
 .qt-hero__countdown {
   display: flex;
-  gap: var(--qt-xl);
-  margin-top: var(--qt-lg);
-  margin-bottom: var(--qt-lg);
+  gap: var(--qt-lg);
+  margin-top: var(--qt-md);
+  margin-bottom: var(--qt-md);
 }
 .qt-countdown-unit { display: flex; flex-direction: column; align-items: flex-start; }
 .qt-countdown-unit__num {
   font-family: var(--qt-font-display);
   font-weight: 900;
-  font-size: var(--qt-text-3xl);
+  font-size: var(--qt-text-2xl);
   line-height: 1;
   color: var(--qt-ink);
   font-variant-numeric: tabular-nums;
@@ -547,7 +546,7 @@ ul, ol { list-style: none; }
 }
 .qt-countdown-divider {
   font-family: var(--qt-font-display);
-  font-size: var(--qt-text-2xl);
+  font-size: var(--qt-text-xl);
   color: var(--qt-accent);
   align-self: flex-start;
   padding-top: var(--qt-xs);
@@ -2805,7 +2804,7 @@ ul, ol { list-style: none; }
 
   /* Hero */
   .qt-hero__venue-strip { display: none; }
-  .qt-hero__inner { padding-bottom: var(--qt-3xl); }
+  .qt-hero__inner { padding-top: 80px; padding-bottom: var(--qt-2xl); }
   .qt-hero__countdown { gap: var(--qt-lg); }
   /* On mobile the media becomes the full-screen background — strip the side mask */
   .qt-hero__media::before { background: none; }
@@ -2888,6 +2887,6 @@ ul, ol { list-style: none; }
 
 @media (max-width: 414px) {
   .qt-how__steps { grid-template-columns: 1fr; }
-  .qt-countdown-unit__num { font-size: var(--qt-text-2xl); }
+  .qt-countdown-unit__num { font-size: var(--qt-text-xl); }
   .qt-hero__countdown { gap: var(--qt-md); }
 }
