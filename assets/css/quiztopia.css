@@ -395,7 +395,8 @@ ul, ol { list-style: none; }
 /* ─── HERO ──────────────────────────────────────────────────────── */
 .qt-hero {
   position: relative;
-  min-height: 100dvh;
+  height: 100vh;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr;
   overflow: hidden;
@@ -473,12 +474,14 @@ ul, ol { list-style: none; }
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding-bottom: var(--qt-4xl);
-  padding-top: 140px;
+  padding-bottom: var(--qt-2xl);
+  padding-top: 100px;
   padding-inline: var(--qt-xl);
   max-width: 1360px;
   margin-inline: auto;
   width: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 .qt-hero__kicker {
   display: flex;
@@ -499,18 +502,18 @@ ul, ol { list-style: none; }
 .qt-hero__headline {
   font-family: var(--qt-font-display);
   font-weight: 900;
-  font-size: var(--qt-display-xl);
-  line-height: 0.9;
+  font-size: clamp(3.2rem, 5.5vw + 0.5rem, 6.5rem);
+  line-height: 0.92;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  max-width: 700px;
+  max-width: 640px;
   overflow-wrap: anywhere;
   min-width: 0;
 }
 .qt-hero__headline em { font-style: normal; color: var(--qt-accent); }
 .qt-hero__sub {
-  margin-top: var(--qt-xl);
-  font-size: var(--qt-text-lg);
+  margin-top: var(--qt-lg);
+  font-size: var(--qt-text-md);
   font-weight: 400;
   color: var(--qt-ink-2);
   max-width: 480px;
@@ -521,8 +524,8 @@ ul, ol { list-style: none; }
 .qt-hero__countdown {
   display: flex;
   gap: var(--qt-xl);
-  margin-top: var(--qt-2xl);
-  margin-bottom: var(--qt-2xl);
+  margin-top: var(--qt-lg);
+  margin-bottom: var(--qt-lg);
 }
 .qt-countdown-unit { display: flex; flex-direction: column; align-items: flex-start; }
 .qt-countdown-unit__num {
