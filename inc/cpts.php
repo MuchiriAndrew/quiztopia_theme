@@ -169,20 +169,20 @@ function qt_faq_meta_box( $post ) {
 /* ─── Leaderboard meta box ────────────────────────────────────── */
 function qt_leaderboard_meta_box( $post ) {
     wp_nonce_field( 'qt_lb_save', 'qt_lb_nonce' );
-    $venue = esc_attr( get_post_meta( $post->ID, 'qt_lb_venue', true ) );
-    $score = esc_attr( get_post_meta( $post->ID, 'qt_lb_score', true ) );
-    $badge = esc_attr( get_post_meta( $post->ID, 'qt_lb_badge', true ) );
+    $team   = esc_attr( get_post_meta( $post->ID, 'qt_lb_team',   true ) );
+    $venue  = esc_attr( get_post_meta( $post->ID, 'qt_lb_venue',  true ) );
+    $status = esc_attr( get_post_meta( $post->ID, 'qt_lb_status', true ) );
     ?>
+    <p style="color:#666;font-size:12px;margin-bottom:8px">The post title is the trivia night name (e.g. "Grand Trivia Night · June 2026").</p>
     <table style="width:100%;border-spacing:0 10px">
-    <tr><td style="width:140px"><strong>Venue</strong></td><td>
-    <input type="text" name="qt_lb_venue" value="<?php echo $venue; ?>" style="width:100%;max-width:320px">
+    <tr><td style="width:140px"><strong>Winning Team</strong></td><td>
+    <input type="text" name="qt_lb_team" value="<?php echo $team; ?>" style="width:100%;max-width:320px" placeholder="e.g. The Trivia Titans">
     </td></tr>
-    <tr><td><strong>Score</strong></td><td>
-    <input type="number" name="qt_lb_score" value="<?php echo $score; ?>" style="width:120px">
+    <tr><td><strong>Venue</strong></td><td>
+    <input type="text" name="qt_lb_venue" value="<?php echo $venue; ?>" style="width:100%;max-width:320px" placeholder="e.g. Wooden Barrels">
     </td></tr>
-    <tr><td><strong>Badge</strong></td><td>
-    <input type="text" name="qt_lb_badge" value="<?php echo $badge; ?>" style="width:100%;max-width:320px">
-    <span style="color:#666;font-size:12px">e.g. Champions · Runners Up — leave blank to hide</span>
+    <tr><td><strong>Status</strong></td><td>
+    <input type="text" name="qt_lb_status" value="<?php echo $status; ?>" style="width:100%;max-width:320px" placeholder="e.g. Champions · Sold Out · Past Event">
     </td></tr>
     </table>
     <?php
@@ -222,25 +222,27 @@ function qt_save_meta( $post_id ) {
 
     // Leaderboard
     if ( isset( $_POST['qt_lb_nonce'] ) && wp_verify_nonce( $_POST['qt_lb_nonce'], 'qt_lb_save' ) ) {
-        update_post_meta( $post_id, 'qt_lb_venue', sanitize_text_field( $_POST['qt_lb_venue'] ?? '' ) );
-        update_post_meta( $post_id, 'qt_lb_score', absint( $_POST['qt_lb_score'] ?? 0 ) );
-        update_post_meta( $post_id, 'qt_lb_badge', sanitize_text_field( $_POST['qt_lb_badge'] ?? '' ) );
+        update_post_meta( $post_id, 'qt_lb_team',   sanitize_text_field( $_POST['qt_lb_team']   ?? '' ) );
+        update_post_meta( $post_id, 'qt_lb_venue',  sanitize_text_field( $_POST['qt_lb_venue']  ?? '' ) );
+        update_post_meta( $post_id, 'qt_lb_status', sanitize_text_field( $_POST['qt_lb_status'] ?? '' ) );
     }
 }
 add_action( 'save_post', 'qt_save_meta' );
 
-/* ─── Leaderboard: show score in admin column ─────────────────── */
+/* ─── Leaderboard: admin columns ─────────────────────────────── */
 add_filter( 'manage_qt_leaderboard_posts_columns', function( $cols ) {
-    $cols['lb_score'] = 'Score';
-    $cols['lb_venue'] = 'Venue';
+    $cols['lb_team']   = 'Winning Team';
+    $cols['lb_venue']  = 'Venue';
+    $cols['lb_status'] = 'Status';
     return $cols;
 } );
 add_action( 'manage_qt_leaderboard_posts_custom_column', function( $col, $post_id ) {
-    if ( $col === 'lb_score' ) echo get_post_meta( $post_id, 'qt_lb_score', true );
-    if ( $col === 'lb_venue' ) echo get_post_meta( $post_id, 'qt_lb_venue', true );
+    if ( $col === 'lb_team'   ) echo esc_html( get_post_meta( $post_id, 'qt_lb_team',   true ) );
+    if ( $col === 'lb_venue'  ) echo esc_html( get_post_meta( $post_id, 'qt_lb_venue',  true ) );
+    if ( $col === 'lb_status' ) echo esc_html( get_post_meta( $post_id, 'qt_lb_status', true ) );
 }, 10, 2 );
 add_filter( 'manage_edit-qt_leaderboard_sortable_columns', function( $cols ) {
-    $cols['lb_score'] = 'lb_score';
+    $cols['lb_team'] = 'lb_team';
     return $cols;
 } );
 

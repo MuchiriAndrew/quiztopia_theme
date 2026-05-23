@@ -984,29 +984,23 @@ ul, ol { list-style: none; }
   color: var(--qt-ink);
   font-variant-numeric: tabular-nums;
 }
-.qt-lb-rank {
-  font-family: var(--qt-font-display);
-  font-weight: 900;
-  font-size: var(--qt-text-lg);
-  width: 48px;
-  color: var(--qt-muted);
+.qt-lb-night {
+  font-weight: 600;
+  font-size: var(--qt-text-base);
+  letter-spacing: 0.01em;
+  color: var(--qt-ink);
 }
-.qt-lb-rank--gold   { color: var(--qt-accent); }
-.qt-lb-rank--silver { color: oklch(78% 0.010 55); }
-.qt-lb-rank--bronze { color: oklch(68% 0.10 40); }
-.qt-lb-team { font-weight: 600; font-size: var(--qt-text-base); letter-spacing: 0.01em; }
+.qt-lb-team {
+  font-weight: 500;
+  font-size: var(--qt-text-sm);
+  color: var(--qt-ink-2);
+  letter-spacing: 0.01em;
+}
 .qt-lb-venue {
   color: var(--qt-muted);
   font-size: var(--qt-text-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-.qt-lb-score {
-  font-family: var(--qt-font-display);
-  font-weight: 900;
-  font-size: var(--qt-text-xl);
-  color: var(--qt-ink);
-  letter-spacing: -0.01em;
 }
 .qt-lb-badge {
   display: inline-block;

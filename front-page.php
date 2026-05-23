@@ -290,9 +290,8 @@ $how_steps = [
 <?php
 $lb_query = new WP_Query([
   'post_type'      => 'qt_leaderboard',
-  'posts_per_page' => 8,
-  'meta_key'       => 'qt_lb_score',
-  'orderby'        => 'meta_value_num',
+  'posts_per_page' => 10,
+  'orderby'        => 'date',
   'order'          => 'DESC',
 ]);
 ?>
@@ -315,31 +314,28 @@ $lb_query = new WP_Query([
 
       <div data-animate data-animate="fade-right">
         <?php if ($lb_query->have_posts()) : ?>
-        <table class="qt-lb-table" aria-label="Top teams leaderboard">
+        <table class="qt-lb-table" aria-label="Trivia night winners">
           <thead>
             <tr>
-              <th scope="col">#</th>
+              <th scope="col">Trivia Night</th>
               <th scope="col">Team</th>
               <th scope="col">Venue</th>
-              <th scope="col">Score</th>
               <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
-          <?php $rank = 1; while ($lb_query->have_posts()) : $lb_query->the_post();
-            $lb_venue = get_post_meta(get_the_ID(), 'qt_lb_venue', true);
-            $lb_score = get_post_meta(get_the_ID(), 'qt_lb_score', true);
-            $lb_badge = get_post_meta(get_the_ID(), 'qt_lb_badge', true);
-            $rank_class = $rank === 1 ? 'qt-lb-rank--gold' : ($rank === 2 ? 'qt-lb-rank--silver' : ($rank === 3 ? 'qt-lb-rank--bronze' : ''));
+          <?php while ($lb_query->have_posts()) : $lb_query->the_post();
+            $lb_team   = get_post_meta(get_the_ID(), 'qt_lb_team',   true);
+            $lb_venue  = get_post_meta(get_the_ID(), 'qt_lb_venue',  true);
+            $lb_status = get_post_meta(get_the_ID(), 'qt_lb_status', true);
           ?>
             <tr>
-              <td class="qt-lb-rank <?php echo esc_attr($rank_class); ?>"><?php echo str_pad($rank, 2, '0', STR_PAD_LEFT); ?></td>
-              <td><div class="qt-lb-team"><?php the_title(); ?></div></td>
+              <td><div class="qt-lb-night"><?php the_title(); ?></div></td>
+              <td><div class="qt-lb-team"><?php echo esc_html($lb_team); ?></div></td>
               <td class="qt-lb-venue"><?php echo esc_html($lb_venue); ?></td>
-              <td class="qt-lb-score"><?php echo esc_html($lb_score); ?></td>
-              <td><?php if ($lb_badge) : ?><span class="qt-lb-badge"><?php echo esc_html($lb_badge); ?></span><?php endif; ?></td>
+              <td><?php if ($lb_status) : ?><span class="qt-lb-badge"><?php echo esc_html($lb_status); ?></span><?php endif; ?></td>
             </tr>
-          <?php $rank++; endwhile; wp_reset_postdata(); ?>
+          <?php endwhile; wp_reset_postdata(); ?>
           </tbody>
         </table>
         <?php else : ?>
