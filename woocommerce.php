@@ -30,7 +30,7 @@ $is_checkout = is_checkout() && !is_wc_endpoint_url('order-received');
         </div>
 
         <?php else : ?>
-        <div style="padding-bottom:var(--qt-3xl);border-bottom:1px solid var(--qt-rule);margin-bottom:var(--qt-3xl)">
+        <div class="qt-wc-page-header">
           <span class="qt-label" style="display:block;margin-bottom:var(--qt-md)">QUIZTOPIA_KE</span>
           <h1 class="qt-display qt-display--lg" data-animate>
             <?php echo wp_kses_post($wc_page_title); ?>
