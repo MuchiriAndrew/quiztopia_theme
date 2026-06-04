@@ -23,10 +23,11 @@ $is_checkout = is_checkout() && !is_wc_endpoint_url('order-received');
 
       <?php if ($wc_page_title && !is_product()) : ?>
 
-        <?php if ($is_checkout) : ?>
-        <!-- Checkout: compact inline header — no big display title eating space -->
+        <?php if (is_checkout() && !is_wc_endpoint_url('order-received')) : ?>
+        <!-- Checkout: always compact — never the big display h1 -->
         <div class="qt-wc-checkout-head">
-          <span class="qt-label">QUIZTOPIA_KE / CHECKOUT</span>
+          <span class="qt-label">QUIZTOPIA_KE</span>
+          <h1 class="qt-checkout-page-title">Checkout</h1>
         </div>
 
         <?php else : ?>
