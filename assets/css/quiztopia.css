@@ -2925,7 +2925,7 @@ ul, ol { list-style: none; }
     max-height: 320px;
     margin-left: 0 !important;
     background-size: cover;
-    background-position: center top;
+    background-position: center center !important;
   }
   .qt-experience__text { padding: var(--qt-2xl) var(--qt-xl); }
 

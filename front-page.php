@@ -146,7 +146,9 @@ $events_query = new WP_Query([
         $ev_status   = get_post_meta($ev_id, 'qt_event_status', true);
         $ev_wc_id    = get_post_meta($ev_id, 'qt_event_wc_product_id', true);
         $ev_url      = $ev_wc_id ? get_permalink($ev_wc_id) : get_permalink();
-        $ev_thumb    = get_the_post_thumbnail_url($ev_id, 'large')
+        $ev_img_id   = get_post_meta($ev_id, 'qt_event_image_id', true);
+        $ev_thumb    = ($ev_img_id ? wp_get_attachment_image_url($ev_img_id, 'large') : '')
+                    ?: get_the_post_thumbnail_url($ev_id, 'large')
                     ?: ($ev_wc_id ? get_the_post_thumbnail_url($ev_wc_id, 'large') : '');
         $card_class  = 'qt-event-card' . ($is_featured ? ' qt-event-card--featured' : '');
       ?>

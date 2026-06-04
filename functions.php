@@ -118,8 +118,10 @@ add_action( 'wp_ajax_nopriv_qt_subscribe', 'qt_newsletter_subscribe' );
 /* ─── WooCommerce: remove default sidebar ────────────────────── */
 remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
 
-/* ─── WooCommerce: hide coupon notice on checkout ────────────── */
+/* ─── WooCommerce: hide coupon (checkout + cart) ─────────────── */
 remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+remove_action( 'woocommerce_cart_coupon',          'woocommerce_cart_coupon',          10 );
+add_filter( 'woocommerce_coupons_enabled', '__return_false' );
 
 /* ─── WooCommerce: breadcrumb defaults ───────────────────────── */
 add_filter( 'woocommerce_breadcrumb_defaults', function( $defaults ) {

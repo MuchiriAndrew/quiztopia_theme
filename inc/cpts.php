@@ -95,6 +95,14 @@ function qt_add_meta_boxes() {
 }
 add_action( 'add_meta_boxes', 'qt_add_meta_boxes' );
 
+/* ─── Enqueue WP media uploader on event edit screens ────────── */
+add_action( 'admin_enqueue_scripts', function( $hook ) {
+    global $post;
+    if ( in_array( $hook, [ 'post.php', 'post-new.php' ] ) && isset( $post ) && $post->post_type === 'qt_event' ) {
+        wp_enqueue_media();
+    }
+} );
+
 /* ─── Event meta box ──────────────────────────────────────────── */
 function qt_event_meta_box( $post ) {
     wp_nonce_field( 'qt_event_save', 'qt_event_nonce' );
@@ -112,6 +120,20 @@ function qt_event_meta_box( $post ) {
         'qt_event_status'        => [ 'Status', 'select:upcoming,sold-out,coming-soon,past', '' ],
     ];
     echo '<table style="width:100%;border-spacing:0 12px">';
+
+    /* ── Card image picker ── */
+    $img_id  = absint( get_post_meta( $post->ID, 'qt_event_image_id', true ) );
+    $img_url = $img_id ? wp_get_attachment_image_url( $img_id, 'medium' ) : '';
+    echo "<tr><td style='width:180px;padding-right:16px;vertical-align:top;padding-top:6px'><strong>Card Image</strong></td><td>";
+    echo "<div id='qt-img-preview' style='margin-bottom:8px'>";
+    if ( $img_url ) echo "<img src='" . esc_url( $img_url ) . "' style='max-width:200px;height:auto;display:block;border:1px solid #ddd'>";
+    echo "</div>";
+    echo "<input type='hidden' name='qt_event_image_id' id='qt_event_image_id' value='" . esc_attr( $img_id ?: '' ) . "'>";
+    echo "<button type='button' class='button' id='qt-img-upload'>Set Image</button> ";
+    echo "<button type='button' class='button' id='qt-img-remove'" . ( $img_id ? "" : " style='display:none'" ) . ">Remove</button>";
+    echo "<p style='color:#666;font-size:12px;margin:4px 0 0'>Displayed on event cards on the homepage and events page</p>";
+    echo "</td></tr>";
+
     foreach ( $fields as $key => $f ) {
         $val   = esc_attr( get_post_meta( $post->ID, $key, true ) );
         $label = esc_html( $f[0] );
@@ -132,6 +154,33 @@ function qt_event_meta_box( $post ) {
         echo '</td></tr>';
     }
     echo '</table>';
+
+    /* ── Media uploader JS ── */
+    ?>
+    <script>
+    (function($){
+        var frame;
+        $('#qt-img-upload').on('click', function(e){
+            e.preventDefault();
+            if(frame){ frame.open(); return; }
+            frame = wp.media({ title: 'Select Event Card Image', button: { text: 'Use this image' }, multiple: false });
+            frame.on('select', function(){
+                var att = frame.state().get('selection').first().toJSON();
+                $('#qt_event_image_id').val(att.id);
+                $('#qt-img-preview').html('<img src="'+att.url+'" style="max-width:200px;height:auto;display:block;border:1px solid #ddd">');
+                $('#qt-img-remove').show();
+            });
+            frame.open();
+        });
+        $('#qt-img-remove').on('click', function(e){
+            e.preventDefault();
+            $('#qt_event_image_id').val('');
+            $('#qt-img-preview').html('');
+            $(this).hide();
+        });
+    })(jQuery);
+    </script>
+    <?php
 }
 
 /* ─── Testimonial meta box ────────────────────────────────────── */
@@ -195,6 +244,9 @@ function qt_save_meta( $post_id ) {
 
     // Event
     if ( isset( $_POST['qt_event_nonce'] ) && wp_verify_nonce( $_POST['qt_event_nonce'], 'qt_event_save' ) ) {
+        if ( isset( $_POST['qt_event_image_id'] ) ) {
+            update_post_meta( $post_id, 'qt_event_image_id', absint( $_POST['qt_event_image_id'] ) );
+        }
         $event_fields = [
             'qt_event_date', 'qt_event_time', 'qt_event_venue', 'qt_event_venue_short',
             'qt_event_price', 'qt_event_seats_left', 'qt_event_ticket_url',
