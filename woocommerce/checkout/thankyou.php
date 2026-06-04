@@ -69,7 +69,7 @@ $instagram_handle = qt_opt( 'qt_instagram_handle', '@quiztopia_ke' );
           <?php do_action( 'woocommerce_thankyou_' . $order->get_payment_method(), $order->get_id() ); ?>
 
           <div class="qt-thankyou__actions">
-            <a href="<?php echo esc_url( home_url('/#events') ); ?>" class="qt-btn-primary">See more events</a>
+           
             <a href="<?php echo esc_url( wc_get_account_endpoint_url('orders') ); ?>" class="qt-btn-ghost">My orders</a>
             <?php if ($instagram_url) : ?>
             <a href="<?php echo esc_url($instagram_url); ?>" class="qt-btn-ghost" target="_blank" rel="noopener noreferrer">Follow us <?php echo esc_html($instagram_handle); ?></a>
