@@ -1425,7 +1425,7 @@ ul, ol { list-style: none; }
 /* ─── Generic page / single ─────────────────────────────────────── */
 .qt-page-header {
   padding-top: 140px;
-  padding-bottom: var(--qt-3xl);
+  /* padding-bottom: var(--qt-3xl); */
   background: var(--qt-paper);
   position: relative;
   overflow: hidden;
@@ -1449,7 +1449,7 @@ ul, ol { list-style: none; }
   min-width: 0;
 }
 .qt-page-content {
-  padding-block: var(--qt-4xl);
+  padding-block: 20px;
   background: var(--qt-paper);
 }
 .qt-page-content .qt-container {
