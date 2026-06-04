@@ -2924,7 +2924,6 @@ ul, ol { list-style: none; }
     min-height: 220px;
     max-height: 320px;
     margin-left: 0 !important;
-    background-image: none !important;
     background-size: cover;
     background-position: center top;
   }

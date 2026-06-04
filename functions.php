@@ -118,6 +118,9 @@ add_action( 'wp_ajax_nopriv_qt_subscribe', 'qt_newsletter_subscribe' );
 /* ─── WooCommerce: remove default sidebar ────────────────────── */
 remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
 
+/* ─── WooCommerce: hide coupon notice on checkout ────────────── */
+remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+
 /* ─── WooCommerce: breadcrumb defaults ───────────────────────── */
 add_filter( 'woocommerce_breadcrumb_defaults', function( $defaults ) {
     $defaults['delimiter'] = ' / ';
