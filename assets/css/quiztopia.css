@@ -939,6 +939,9 @@ ul, ol { list-style: none; }
   gap: var(--qt-4xl);
   align-items: start;
 }
+.qt-leaderboard__inner > * {
+  min-width: 0;
+}
 .qt-leaderboard__intro {
   position: sticky;
   top: calc(var(--qt-5xl) + var(--qt-lg));
@@ -970,8 +973,16 @@ ul, ol { list-style: none; }
   line-height: 1.7;
   max-width: 36ch;
 }
+.qt-lb-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--qt-rule) transparent;
+}
 .qt-lb-table {
   width: 100%;
+  min-width: 500px;
   border-collapse: collapse;
 }
 .qt-lb-table thead th {
@@ -2072,6 +2083,10 @@ ul, ol { list-style: none; }
   font-family: var(--qt-font-display) !important;
   font-weight: 900 !important;
 }
+/* Order summary sidebar — keep amounts readable, not display-sized */
+.qt-checkout-summary table.shop_table .amount {
+  font-size: var(--qt-text-sm) !important;
+}
 
 /* Cart totals */
 .woocommerce .cart_totals h2,
@@ -2202,6 +2217,8 @@ ul, ol { list-style: none; }
 .woocommerce #payment .payment_methods label {
   color: var(--qt-ink) !important;
   font-family: var(--qt-font-body) !important;
+  font-size: var(--qt-text-sm) !important;
+  font-weight: 600 !important;
 }
 
 /* Breadcrumb */
@@ -2283,9 +2300,9 @@ ul, ol { list-style: none; }
 .woocommerce #payment .payment_box {
   background: var(--qt-paper-1) !important;
   color: var(--qt-ink-2) !important;
-  font-size: var(--qt-text-sm) !important;
+  font-size: var(--qt-text-xs) !important;
   line-height: 1.6 !important;
-  padding: var(--qt-md) !important;
+  padding: var(--qt-sm) var(--qt-md) !important;
   border: none !important;
   border-top: 1px solid var(--qt-rule) !important;
 }
@@ -2294,13 +2311,18 @@ ul, ol { list-style: none; }
   accent-color: var(--qt-accent);
 }
 .woocommerce #payment ul.payment_methods > li {
-  padding: var(--qt-md) !important;
+  padding: var(--qt-sm) var(--qt-md) !important;
 }
 .woocommerce #payment ul.payment_methods > li:last-child { border-bottom: none !important; }
 .woocommerce-checkout-payment .woocommerce-privacy-policy-text {
-  font-size: var(--qt-text-xs) !important;
+  font-size: 0.6rem !important;
   color: var(--qt-muted) !important;
-  line-height: 1.6 !important;
+  line-height: 1.5 !important;
+  margin-top: var(--qt-sm) !important;
+  padding: 0 var(--qt-md) !important;
+}
+.woocommerce-checkout-payment .woocommerce-privacy-policy-text p {
+  font-size: inherit !important;
 }
 
 /* Checkout order review heading spacing */
@@ -2466,15 +2488,16 @@ ul, ol { list-style: none; }
   padding: var(--qt-2xl);
 }
 .qt-checkout-summary__title {
-  font-family: var(--qt-font-body);
-  font-weight: 600;
-  font-size: var(--qt-text-xs);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--qt-muted);
-  margin-bottom: var(--qt-lg);
-  padding-bottom: var(--qt-md);
-  border-bottom: 1px solid var(--qt-rule);
+  font-family: var(--qt-font-body) !important;
+  font-weight: 600 !important;
+  font-size: var(--qt-text-xs) !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--qt-muted) !important;
+  margin-bottom: var(--qt-lg) !important;
+  padding-bottom: var(--qt-md) !important;
+  border-bottom: 1px solid var(--qt-rule) !important;
+  line-height: 1.4 !important;
 }
 
 /* Classic checkout section headings */
@@ -2504,11 +2527,12 @@ ul, ol { list-style: none; }
   border-bottom: 1px solid var(--qt-rule-2) !important;
   background: none !important;
   padding: var(--qt-sm) 0 !important;
+  font-size: var(--qt-text-sm) !important;
 }
 .qt-checkout-summary table.woocommerce-checkout-review-order-table tfoot tr:last-child td,
 .qt-checkout-summary table.woocommerce-checkout-review-order-table tfoot tr:last-child th {
   font-family: var(--qt-font-display) !important;
-  font-size: var(--qt-text-lg) !important;
+  font-size: var(--qt-text-md) !important;
   font-weight: 900 !important;
   color: var(--qt-accent) !important;
   border-top: 1px solid var(--qt-rule) !important;
@@ -2529,6 +2553,16 @@ ul, ol { list-style: none; }
   width: 100% !important;
   justify-content: center !important;
   margin-top: var(--qt-lg) !important;
+}
+
+/* Suppress the white faded overlay WooCommerce/jQuery BlockUI injects when
+   the checkout form is submitted (visible as a dim white screen before Paystack
+   popup appears). Paystack opens its own popup so the overlay is redundant. */
+.woocommerce-checkout-payment .blockUI.blockOverlay,
+.checkout.woocommerce-checkout .blockUI.blockOverlay,
+#order_review .blockUI.blockOverlay,
+.qt-checkout-form .blockUI.blockOverlay {
+  display: none !important;
 }
 
 /* Classic checkout — remove WC's default float layout */
@@ -2886,7 +2920,14 @@ ul, ol { list-style: none; }
 
   /* Experience */
   .qt-experience__inner { grid-template-columns: 1fr; }
-  .qt-experience__visual { min-height: 280px; background-image: none !important; }
+  .qt-experience__visual {
+    min-height: 220px;
+    max-height: 320px;
+    margin-left: 0 !important;
+    background-image: none !important;
+    background-size: cover;
+    background-position: center top;
+  }
   .qt-experience__text { padding: var(--qt-2xl) var(--qt-xl); }
 
   /* How */
@@ -2971,4 +3012,35 @@ ul, ol { list-style: none; }
     grid-template-columns: 1fr 520px;
     gap: var(--qt-3xl);
   }
+}
+
+/* ── Checkout payment section: end-of-file overrides ─────────────── *
+ * These live last so they win over any plugin stylesheet regardless   *
+ * of load order. Uses body class woocommerce-checkout (WC adds it)   *
+ * plus ID specificity on #payment for maximum cascade weight.        */
+body.woocommerce-checkout #payment .payment_methods label,
+body.woocommerce-checkout #payment .wc_payment_method > label {
+  font-family: var(--qt-font-body) !important;
+  font-size: var(--qt-text-sm) !important;
+  font-weight: 600 !important;
+  color: var(--qt-ink) !important;
+}
+body.woocommerce-checkout #payment ul.payment_methods > li,
+body.woocommerce-checkout #payment ul.wc_payment_methods > li {
+  padding: var(--qt-sm) var(--qt-md) !important;
+}
+body.woocommerce-checkout #payment .payment_box,
+body.woocommerce-checkout #payment .payment_box p,
+body.woocommerce-checkout #payment .payment_box * {
+  font-family: var(--qt-font-body) !important;
+  font-size: var(--qt-text-xs) !important;
+  line-height: 1.6 !important;
+  color: var(--qt-ink-2) !important;
+}
+body.woocommerce-checkout .woocommerce-privacy-policy-text,
+body.woocommerce-checkout .woocommerce-privacy-policy-text p,
+body.woocommerce-checkout .woocommerce-privacy-policy-text * {
+  font-size: 0.6rem !important;
+  color: var(--qt-muted) !important;
+  line-height: 1.5 !important;
 }

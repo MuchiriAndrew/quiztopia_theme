@@ -314,6 +314,7 @@ $lb_query = new WP_Query([
 
       <div data-animate data-animate="fade-right">
         <?php if ($lb_query->have_posts()) : ?>
+        <div class="qt-lb-scroll">
         <table class="qt-lb-table" aria-label="Trivia night winners">
           <thead>
             <tr>
@@ -338,6 +339,7 @@ $lb_query = new WP_Query([
           <?php endwhile; wp_reset_postdata(); ?>
           </tbody>
         </table>
+        </div>
         <?php else : ?>
         <p style="color:var(--qt-muted);padding-block:var(--qt-2xl)">Hall of Fame coming after the first event.</p>
         <?php endif; ?>
