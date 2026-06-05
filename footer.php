@@ -39,10 +39,7 @@ $footer_copy      = qt_opt('qt_footer_copy', '© ' . date('Y') . ' QUIZTOPIA_KE.
 
       <div class="qt-footer__meta">
         <?php echo esc_html($footer_copy); ?>
-        <a href="<?php echo esc_url(get_privacy_policy_url()); ?>">Privacy</a>
-        <?php if (function_exists('WC')) : ?>
-        <a href="<?php echo esc_url(wc_get_page_permalink('terms')); ?>">Terms</a>
-        <?php endif; ?>
+        
       </div>
 
       <div class="qt-footer__social">

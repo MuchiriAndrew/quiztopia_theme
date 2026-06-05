@@ -73,6 +73,24 @@ function qt_register_cpts() {
         'menu_icon'    => 'dashicons-awards',
         'menu_position'=> 8,
     ] );
+
+    register_post_type( 'qt_lead', [
+        'labels' => [
+            'name'          => 'Leads',
+            'singular_name' => 'Lead',
+            'all_items'     => 'All Leads',
+            'add_new_item'  => 'Add Lead',
+            'edit_item'     => 'Edit Lead',
+            'not_found'     => 'No leads yet',
+        ],
+        'public'          => false,
+        'show_ui'         => true,
+        'show_in_rest'    => false,
+        'supports'        => [ 'title' ],
+        'menu_icon'       => 'dashicons-email-alt',
+        'menu_position'   => 9,
+        'capability_type' => 'post',
+    ] );
 }
 add_action( 'init', 'qt_register_cpts' );
 
@@ -83,6 +101,9 @@ function qt_add_meta_boxes() {
 
     add_meta_box( 'qt_event_details', 'Event Details',
         'qt_event_meta_box', 'qt_event', 'normal', 'high' );
+
+    add_meta_box( 'qt_event_announce', 'Email Leads',
+        'qt_event_announce_meta_box', 'qt_event', 'side', 'high' );
 
     add_meta_box( 'qt_testimonial_details', 'Testimonial Details',
         'qt_testimonial_meta_box', 'qt_testimonial', 'normal', 'high' );
@@ -327,4 +348,119 @@ add_action( 'manage_qt_event_posts_custom_column', function( $col, $post_id ) {
 add_filter( 'manage_edit-qt_event_sortable_columns', function( $cols ) {
     $cols['event_date'] = 'qt_event_date';
     return $cols;
+} );
+
+/* ─── Leads: admin columns ────────────────────────────────────── */
+add_filter( 'manage_qt_lead_posts_columns', function( $cols ) {
+    unset( $cols['date'] );
+    $cols['lead_email']    = 'Email';
+    $cols['lead_source']   = 'Source';
+    $cols['lead_subscribed'] = 'Subscribed';
+    return $cols;
+} );
+add_action( 'manage_qt_lead_posts_custom_column', function( $col, $post_id ) {
+    if ( $col === 'lead_email' ) {
+        $email = get_post_meta( $post_id, 'qt_lead_email', true );
+        echo '<a href="mailto:' . esc_attr($email) . '">' . esc_html($email) . '</a>';
+    }
+    if ( $col === 'lead_source' )   echo esc_html( get_post_meta( $post_id, 'qt_lead_source', true ) ?: 'newsletter' );
+    if ( $col === 'lead_subscribed' ) echo esc_html( get_the_date( 'j M Y', $post_id ) );
+}, 10, 2 );
+
+/* ─── Announce meta box on event edit screen ─────────────────── */
+function qt_event_announce_meta_box( $post ) {
+    $lead_count = (int) wp_count_posts('qt_lead')->publish;
+    $last_sent  = get_post_meta( $post->ID, 'qt_announce_last_sent', true );
+    $ev_title   = get_the_title( $post->ID ) ?: 'this event';
+
+    $admin_notice = '';
+    if ( isset( $_GET['qt_announce'] ) ) {
+        if ( $_GET['qt_announce'] === 'sent' ) {
+            $n = absint( $_GET['qt_n'] ?? 0 );
+            $admin_notice = "<div style='background:#1c3a1c;border:1px solid #3a6b3a;color:#a0d0a0;padding:10px 12px;border-radius:4px;margin-bottom:12px;font-size:13px'>
+                ✓ Announcement sent to <strong>{$n}</strong> subscriber" . ( $n !== 1 ? 's' : '' ) . ".</div>";
+        } elseif ( $_GET['qt_announce'] === 'none' ) {
+            $admin_notice = "<div style='background:#3a2a1c;border:1px solid #6b4a2a;color:#d0b080;padding:10px 12px;border-radius:4px;margin-bottom:12px;font-size:13px'>
+                No leads to email yet.</div>";
+        } elseif ( $_GET['qt_announce'] === 'error' ) {
+            $admin_notice = "<div style='background:#3a1c1c;border:1px solid #6b2a2a;color:#d08080;padding:10px 12px;border-radius:4px;margin-bottom:12px;font-size:13px'>
+                ✗ Invalid request — please try again.</div>";
+        }
+    }
+
+    $default_subject = 'New event: ' . $ev_title;
+    $ev_date_raw = get_post_meta( $post->ID, 'qt_event_date', true );
+    if ( $ev_date_raw ) $default_subject .= ' — ' . date( 'j F Y', strtotime( $ev_date_raw ) );
+
+    echo $admin_notice;
+    ?>
+    <p style="margin:0 0 6px;font-size:13px;color:#666">
+      <strong style="color:#1d2327"><?php echo esc_html($lead_count); ?></strong> subscriber<?php echo $lead_count !== 1 ? 's' : ''; ?> on your list.
+    </p>
+
+    <?php if ($last_sent) : ?>
+    <p style="margin:0 0 12px;font-size:12px;color:#999">Last sent: <?php echo esc_html($last_sent); ?></p>
+    <?php endif; ?>
+
+    <?php if ($lead_count > 0) : ?>
+    <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+        <?php wp_nonce_field( 'qt_announce_' . $post->ID, 'qt_announce_nonce' ); ?>
+        <input type="hidden" name="action"   value="qt_send_announcement">
+        <input type="hidden" name="event_id" value="<?php echo esc_attr($post->ID); ?>">
+        <label for="qt_announce_subject" style="display:block;font-size:12px;font-weight:600;color:#1d2327;margin-bottom:4px">Email subject</label>
+        <input type="text" id="qt_announce_subject" name="qt_announce_subject"
+               value="<?php echo esc_attr($default_subject); ?>"
+               style="width:100%;margin-bottom:10px;padding:6px 8px;border:1px solid #8c8f94;border-radius:3px;font-size:13px">
+        <input type="submit" class="button button-primary" value="Send to all leads →"
+               style="background:#e0890d;border-color:#c07009;color:#fff"
+               onclick="return confirm('Send this announcement to <?php echo esc_js($lead_count); ?> subscriber<?php echo $lead_count !== 1 ? 's' : ''; ?>?')">
+    </form>
+    <?php else : ?>
+    <p style="font-size:13px;color:#999;margin:0">No subscribers yet — share the newsletter link to build your list.</p>
+    <?php endif; ?>
+    <?php
+}
+
+/* ─── Handle announcement send ───────────────────────────────── */
+add_action( 'admin_post_qt_send_announcement', function() {
+    $event_id = absint( $_POST['event_id'] ?? 0 );
+    if ( ! $event_id || ! current_user_can( 'edit_post', $event_id )
+         || ! isset( $_POST['qt_announce_nonce'] )
+         || ! wp_verify_nonce( $_POST['qt_announce_nonce'], 'qt_announce_' . $event_id ) ) {
+        wp_redirect( add_query_arg( 'qt_announce', 'error', get_edit_post_link( $event_id, 'url' ) ) );
+        exit;
+    }
+
+    $subject = sanitize_text_field( $_POST['qt_announce_subject'] ?? '' );
+    $leads   = get_posts( [
+        'post_type'      => 'qt_lead',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+    ] );
+
+    if ( empty( $leads ) ) {
+        wp_redirect( add_query_arg( 'qt_announce', 'none', get_edit_post_link( $event_id, 'url' ) ) );
+        exit;
+    }
+
+    $email_data = qt_email_announcement( $event_id, $subject );
+    $headers    = [ 'Content-Type: text/html; charset=UTF-8' ];
+    $from_name  = get_bloginfo('name') ?: 'QUIZTOPIA_KE';
+    $from_email = get_bloginfo('admin_email');
+    $headers[]  = "From: {$from_name} <{$from_email}>";
+
+    $sent = 0;
+    foreach ( $leads as $lead_id ) {
+        $email = get_post_meta( $lead_id, 'qt_lead_email', true );
+        if ( ! is_email( $email ) ) continue;
+        if ( wp_mail( $email, $email_data['subject'], $email_data['html'], $headers ) ) {
+            $sent++;
+        }
+    }
+
+    update_post_meta( $event_id, 'qt_announce_last_sent', current_time('j M Y, H:i') );
+
+    wp_redirect( add_query_arg( [ 'qt_announce' => 'sent', 'qt_n' => $sent ], get_edit_post_link( $event_id, 'url' ) ) );
+    exit;
 } );

@@ -76,6 +76,7 @@ add_filter( 'wp_enqueue_scripts', function() {
 /* ─── Includes ────────────────────────────────────────────────── */
 require_once get_template_directory() . '/inc/cpts.php';
 require_once get_template_directory() . '/inc/customizer.php';
+require_once get_template_directory() . '/inc/email-templates.php';
 
 /* ─── Helper: get next upcoming event ────────────────────────── */
 function qt_get_next_event() {
@@ -108,9 +109,44 @@ function qt_newsletter_subscribe() {
     if ( ! is_email( $email ) ) {
         wp_send_json_error( [ 'message' => 'Please enter a valid email address.' ] );
     }
-    // Hook into Mailchimp or any list — emit action for integration
+
+    // Duplicate check via meta
+    $existing = get_posts( [
+        'post_type'      => 'qt_lead',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'meta_query'     => [ [
+            'key'     => 'qt_lead_email',
+            'value'   => $email,
+            'compare' => '=',
+        ] ],
+    ] );
+
+    if ( ! empty( $existing ) ) {
+        wp_send_json_success( [ 'message' => 'You\'re already on the list!' ] );
+    }
+
+    // Save lead
+    $lead_id = wp_insert_post( [
+        'post_type'   => 'qt_lead',
+        'post_title'  => $email,
+        'post_status' => 'publish',
+    ] );
+
+    if ( $lead_id && ! is_wp_error( $lead_id ) ) {
+        update_post_meta( $lead_id, 'qt_lead_email', $email );
+        update_post_meta( $lead_id, 'qt_lead_source', 'newsletter' );
+
+        // Send confirmation email
+        $headers = [
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . ( get_bloginfo('name') ?: 'QUIZTOPIA_KE' ) . ' <' . get_bloginfo('admin_email') . '>',
+        ];
+        wp_mail( $email, 'You\'re in the loop — QUIZTOPIA_KE', qt_email_confirmation( $email ), $headers );
+    }
+
     do_action( 'qt_newsletter_subscribe', $email );
-    wp_send_json_success( [ 'message' => 'You\'re on the list.' ] );
+    wp_send_json_success( [ 'message' => 'You\'re in! Check your inbox.' ] );
 }
 add_action( 'wp_ajax_qt_subscribe', 'qt_newsletter_subscribe' );
 add_action( 'wp_ajax_nopriv_qt_subscribe', 'qt_newsletter_subscribe' );
