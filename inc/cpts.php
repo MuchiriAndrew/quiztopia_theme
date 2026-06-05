@@ -155,6 +155,17 @@ function qt_event_meta_box( $post ) {
     }
     echo '</table>';
 
+    /* ── What to expect ── */
+    $expect_raw = get_post_meta( $post->ID, 'qt_event_expect', true );
+    ?>
+    <hr style="margin:16px 0 12px">
+    <p style="margin-bottom:6px"><strong>What to Expect</strong>
+      <span style="color:#666;font-size:12px;font-weight:400;margin-left:6px">One item per line. Leave blank to use the default list.</span>
+    </p>
+    <textarea name="qt_event_expect" rows="6" style="width:100%;font-family:monospace;font-size:13px"><?php echo esc_textarea( $expect_raw ); ?></textarea>
+    <p style="color:#666;font-size:12px;margin:4px 0 0">Default items: rounds, prizes, team size, bar access, theme (when set).</p>
+    <?php
+
     /* ── Media uploader JS ── */
     ?>
     <script>
@@ -256,6 +267,9 @@ function qt_save_meta( $post_id ) {
             if ( isset( $_POST[ $f ] ) ) {
                 update_post_meta( $post_id, $f, sanitize_text_field( $_POST[ $f ] ) );
             }
+        }
+        if ( isset( $_POST['qt_event_expect'] ) ) {
+            update_post_meta( $post_id, 'qt_event_expect', sanitize_textarea_field( $_POST['qt_event_expect'] ) );
         }
     }
 

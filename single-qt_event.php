@@ -109,14 +109,26 @@
         </div>
         <?php endif; ?>
 
+        <?php
+        $ev_expect_raw   = get_post_meta($ev_id, 'qt_event_expect', true);
+        $ev_expect_items = $ev_expect_raw
+            ? array_values(array_filter(array_map('trim', explode("\n", $ev_expect_raw))))
+            : [];
+        $ev_expect_default = array_values(array_filter([
+            '10 competitive rounds of live-hosted trivia',
+            'Prizes for the top 3 teams — and bragging rights, forever',
+            'Best in a team of 4–6 (solo players welcome)',
+            'Full bar access — no extra cover beyond your ticket',
+            $ev_theme ? 'Tonight\'s theme: ' . $ev_theme : '',
+        ]));
+        $ev_expect_list = $ev_expect_items ?: $ev_expect_default;
+        ?>
         <div class="qt-event-single__expect" data-animate>
           <h2 class="qt-event-single__expect-title">What to expect</h2>
           <ul class="qt-event-single__expect-list">
-            <li>10 competitive rounds of live-hosted trivia</li>
-            <li>Prizes for the top 3 teams — and bragging rights, forever</li>
-            <li>Best in a team of 4–6 (solo players welcome)</li>
-            <li>Full bar access — no extra cover beyond your ticket</li>
-            <?php if ($ev_theme) : ?><li>Tonight's theme: <strong><?php echo esc_html($ev_theme); ?></strong></li><?php endif; ?>
+            <?php foreach ($ev_expect_list as $item) : ?>
+            <li><?php echo wp_kses($item, ['strong' => [], 'em' => [], 'a' => ['href' => []]]); ?></li>
+            <?php endforeach; ?>
           </ul>
         </div>
 
@@ -163,9 +175,9 @@
 
         </div>
 
-        <p class="qt-event-single__team-note" data-animate="fade-in">
+        <!-- <p class="qt-event-single__team-note" data-animate="fade-in">
           Trivia is a team sport. Bring 4–6 friends and take the crown.
-        </p>
+        </p> -->
 
       </aside>
 
