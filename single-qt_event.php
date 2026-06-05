@@ -104,7 +104,7 @@
         </div>
         <?php else : ?>
         <div class="qt-event-single__prose" data-animate>
-          <p>Join us for another unforgettable night of live trivia at <?php echo esc_html($ev_venue ?: 'our venue'); ?>. Gather your team of 4–6, grab a drink, and get ready for ten rounds of competitive, culture-heavy fun.</p>
+          <p>Join us for another unforgettable night of live trivia at <?php echo esc_html($ev_venue ?: 'our venue'); ?>. Gather your team of 4–6, grab a drink, and get ready for rounds of competitive, culture-heavy fun.</p>
           <p>Expect questions that test your pop culture instincts, local knowledge, sports trivia, science nerd-outs, and a few wildcards that nobody sees coming. Our host keeps the energy high, the music going between rounds, and the scores close until the final answer.</p>
         </div>
         <?php endif; ?>
