@@ -105,6 +105,7 @@ function qt_customizer( $wp_customize ) {
     $add( 'qt_cta_line2', 'Headline line 2 (amber)', 'qt_final_cta', 'the leaderboard.' );
     $add( 'qt_cta_line3', 'Headline line 3', 'qt_final_cta', 'Get on it.' );
     $add( 'qt_cta_sub',   'Sub text below CTA button', 'qt_final_cta', 'Next event filling fast.' );
+    $add( 'qt_cta_bg',    'Background image', 'qt_final_cta', '', 'image', 'Full-bleed photo behind the CTA. A dark overlay is applied automatically so the text stays readable.' );
 
     /* ═══════════════════════════════════════════════════════════════
        FOOTER / NEWSLETTER

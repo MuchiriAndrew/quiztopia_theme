@@ -663,7 +663,8 @@ ul, ol { list-style: none; }
 }
 .qt-event-card--featured .qt-event-card__photo { aspect-ratio: auto; flex: 1; min-height: 280px; }
 .qt-event-card__photo-img {
-  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+  object-fit: cover;
   background-color: oklch(22% 0.010 50);
   background-image: linear-gradient(165deg, oklch(22% 0.010 50), oklch(16% 0.010 55));
 }
@@ -1303,6 +1304,22 @@ ul, ol { list-style: none; }
 }
 .qt-final-cta__insta:hover { color: var(--qt-accent); }
 .qt-final-cta__insta:focus-visible { outline: 2px solid var(--qt-focus); outline-offset: 2px; }
+/* ── Background image variant ── */
+.qt-final-cta.has-bg-image {
+  background-image: var(--cta-bg-url);
+  background-size: cover;
+  background-position: center;
+  border-top-color: transparent;
+}
+.qt-final-cta.has-bg-image::before { display: none; }
+.qt-final-cta.has-bg-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: oklch(0% 0 0 / 0.62);
+  pointer-events: none;
+}
+.qt-final-cta.has-bg-image .qt-final-cta__inner { z-index: 1; }
 
 /* ─── FOOTER — Ft7 Newsletter-first ────────────────────────────── */
 .qt-footer {

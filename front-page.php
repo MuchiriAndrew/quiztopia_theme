@@ -494,10 +494,12 @@ $cta_line1 = qt_opt('qt_cta_line1', "Don't just watch");
 $cta_line2 = qt_opt('qt_cta_line2', 'the leaderboard.');
 $cta_line3 = qt_opt('qt_cta_line3', 'Get on it.');
 $cta_sub   = qt_opt('qt_cta_sub', 'Next event filling fast.');
+$cta_bg    = qt_opt('qt_cta_bg', '');
 $instagram_url    = qt_opt('qt_instagram_url', 'https://instagram.com/quiztopia_ke');
 $instagram_handle = qt_opt('qt_instagram_handle', '@quiztopia_ke');
 ?>
-<section class="qt-final-cta" aria-labelledby="qt-cta-headline">
+<section class="qt-final-cta<?php echo $cta_bg ? ' has-bg-image' : ''; ?>" aria-labelledby="qt-cta-headline"
+         <?php if ($cta_bg) : ?>style="--cta-bg-url: url('<?php echo esc_url($cta_bg); ?>')"<?php endif; ?>>
   <div class="qt-container">
     <div class="qt-final-cta__inner">
 
