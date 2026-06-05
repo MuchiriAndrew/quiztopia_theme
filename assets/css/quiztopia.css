@@ -2332,7 +2332,7 @@ ul, ol { list-style: none; }
 }
 .woocommerce #payment ul.payment_methods > li:last-child { border-bottom: none !important; }
 .woocommerce-checkout-payment .woocommerce-privacy-policy-text {
-  font-size: 0.6rem !important;
+  font-size: 12px !important;
   color: var(--qt-muted) !important;
   line-height: 1.5 !important;
   margin-top: var(--qt-sm) !important;
@@ -3133,7 +3133,7 @@ body.woocommerce-checkout #payment .payment_box * {
 body.woocommerce-checkout .woocommerce-privacy-policy-text,
 body.woocommerce-checkout .woocommerce-privacy-policy-text p,
 body.woocommerce-checkout .woocommerce-privacy-policy-text * {
-  font-size: 0.6rem !important;
+  font-size: 12px !important;
   color: var(--qt-muted) !important;
   line-height: 1.5 !important;
 }
