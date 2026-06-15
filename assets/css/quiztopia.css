@@ -3085,8 +3085,29 @@ ul, ol { list-style: none; }
 
 @media (max-width: 414px) {
   .qt-how__steps { grid-template-columns: 1fr; }
-  .qt-countdown-unit__num { font-size: var(--qt-text-xl); }
+
+  /* Hero — tighten the type and spacing so it breathes on small screens */
+  .qt-hero__inner { padding-top: 72px; padding-inline: var(--qt-lg); }
+  .qt-hero__headline { font-size: clamp(2.5rem, 11vw + 0.25rem, 3.4rem); }
+  .qt-hero__sub { font-size: 0.9375rem; margin-top: var(--qt-sm); }
+
   .qt-hero__countdown { gap: var(--qt-md); }
+  .qt-countdown-unit__num { font-size: var(--qt-text-xl); }
+
+  /* Stack the CTAs full-width so they're easy to tap */
+  .qt-hero__actions { gap: var(--qt-sm); }
+  .qt-hero__actions > a { width: 100%; text-align: center; justify-content: center; }
+}
+
+/* ── Hero: very small phones (iPhone SE and narrower) ───────────────── */
+@media (max-width: 375px) {
+  .qt-hero__inner { padding-top: 64px; padding-bottom: var(--qt-xl); }
+  .qt-hero__headline { font-size: clamp(2.1rem, 10vw, 2.9rem); line-height: 0.95; }
+  .qt-hero__sub { font-size: 0.875rem; line-height: 1.5; }
+
+  .qt-hero__countdown { gap: var(--qt-sm); margin-block: var(--qt-sm); }
+  .qt-countdown-unit__num { font-size: var(--qt-text-lg); }
+  .qt-countdown-divider { padding-top: var(--qt-2xs); }
 }
 
 /* ── Checkout: tablet (iPad landscape) ──────────────────────────── */
