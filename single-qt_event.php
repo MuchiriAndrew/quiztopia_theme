@@ -12,10 +12,11 @@
   $ev_theme    = get_post_meta($ev_id, 'qt_event_theme', true);
   $ev_badge    = get_post_meta($ev_id, 'qt_event_badge', true);
   $ev_status   = get_post_meta($ev_id, 'qt_event_status', true);
-  $ev_wc_id    = get_post_meta($ev_id, 'qt_event_wc_product_id', true);
+  $ev_ticket   = qt_get_event_ticket_target($ev_id);
+  $ev_wc_id    = $ev_ticket['product_id'];
   $ev_thumb    = get_the_post_thumbnail_url($ev_id, 'full');
   $ev_excerpt  = get_the_excerpt();
-  $buy_url     = $ev_wc_id ? get_permalink($ev_wc_id) : (function_exists('WC') ? wc_get_page_permalink('shop') : '/shop');
+  $buy_url     = $ev_ticket['url'] ?: (function_exists('WC') ? wc_get_page_permalink('shop') : '/shop');
   $is_sold_out = ($ev_status === 'sold-out');
   $is_soon     = ($ev_status === 'coming-soon');
 ?>

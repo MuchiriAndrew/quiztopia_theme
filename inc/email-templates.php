@@ -166,8 +166,8 @@ function qt_email_announcement( $event_id, $custom_subject = '' ) {
     $ev_price    = get_post_meta( $event_id, 'qt_event_price', true );
     $ev_theme    = get_post_meta( $event_id, 'qt_event_theme', true );
     $ev_title    = get_the_title( $event_id );
-    $ev_wc_id    = get_post_meta( $event_id, 'qt_event_wc_product_id', true );
-    $ev_url      = $ev_wc_id ? get_permalink( $ev_wc_id ) : get_permalink( $event_id );
+    $ev_ticket   = qt_get_event_ticket_target( $event_id );
+    $ev_url      = $ev_ticket['url'] ?: get_permalink( $event_id );
     $shop_url    = function_exists('WC') ? wc_get_page_permalink('shop') : home_url('/shop');
     $buy_url     = $ev_url ?: $shop_url;
 

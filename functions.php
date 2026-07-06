@@ -78,11 +78,135 @@ require_once get_template_directory() . '/inc/cpts.php';
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/email-templates.php';
 
+/* ─── Helpers: event dates + ticket targets ──────────────────── */
+function qt_normalize_event_date( $raw_date ) {
+    $raw_date = trim( (string) $raw_date );
+
+    if ( $raw_date === '' ) {
+        return '';
+    }
+
+    if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_date ) ) {
+        return $raw_date;
+    }
+
+    if ( preg_match( '/^(\d{4})(\d{2})(\d{2})$/', $raw_date, $m ) ) {
+        return "{$m[1]}-{$m[2]}-{$m[3]}";
+    }
+
+    $timestamp = strtotime( $raw_date );
+    return $timestamp ? date( 'Y-m-d', $timestamp ) : '';
+}
+
+function qt_resolve_event_ticket_reference( $reference ) {
+    $reference = trim( (string) $reference );
+
+    if ( $reference === '' ) {
+        return [
+            'product_id' => 0,
+            'url'        => '',
+        ];
+    }
+
+    if ( ctype_digit( $reference ) ) {
+        $product_id = absint( $reference );
+        if ( $product_id && get_post_type( $product_id ) === 'product' ) {
+            return [
+                'product_id' => $product_id,
+                'url'        => get_permalink( $product_id ),
+            ];
+        }
+    }
+
+    if ( preg_match( '#^https?://#i', $reference ) || str_starts_with( $reference, '/' ) ) {
+        $url        = str_starts_with( $reference, '/' ) ? home_url( $reference ) : $reference;
+        $product_id = url_to_postid( $url );
+
+        if ( $product_id && get_post_type( $product_id ) === 'product' ) {
+            return [
+                'product_id' => $product_id,
+                'url'        => get_permalink( $product_id ),
+            ];
+        }
+
+        $path_candidate = basename( wp_parse_url( $url, PHP_URL_PATH ) ?: '' );
+        if ( $path_candidate !== '' ) {
+            $product = get_page_by_path( $path_candidate, OBJECT, 'product' );
+            if ( $product instanceof WP_Post ) {
+                return [
+                    'product_id' => $product->ID,
+                    'url'        => get_permalink( $product->ID ),
+                ];
+            }
+        }
+
+        return [
+            'product_id' => 0,
+            'url'        => $url,
+        ];
+    }
+
+    $slug = trim( $reference, "/ \t\n\r\0\x0B" );
+
+    foreach ( [ $slug, basename( $slug ) ] as $candidate ) {
+        if ( $candidate === '' ) {
+            continue;
+        }
+
+        $product = get_page_by_path( $candidate, OBJECT, 'product' );
+        if ( $product instanceof WP_Post ) {
+            return [
+                'product_id' => $product->ID,
+                'url'        => get_permalink( $product->ID ),
+            ];
+        }
+    }
+
+    $fallback_url = home_url( '/' . ltrim( $slug, '/' ) . '/' );
+    $product_id   = url_to_postid( $fallback_url );
+
+    if ( $product_id && get_post_type( $product_id ) === 'product' ) {
+        return [
+            'product_id' => $product_id,
+            'url'        => get_permalink( $product_id ),
+        ];
+    }
+
+    return [
+        'product_id' => 0,
+        'url'        => $fallback_url,
+    ];
+}
+
+function qt_get_event_ticket_target( $event_id ) {
+    $event_id = absint( $event_id );
+
+    if ( ! $event_id ) {
+        return [
+            'product_id' => 0,
+            'url'        => '',
+        ];
+    }
+
+    $product_id = absint( get_post_meta( $event_id, 'qt_event_wc_product_id', true ) );
+    if ( $product_id && get_post_type( $product_id ) === 'product' ) {
+        return [
+            'product_id' => $product_id,
+            'url'        => get_permalink( $product_id ),
+        ];
+    }
+
+    return qt_resolve_event_ticket_reference(
+        get_post_meta( $event_id, 'qt_event_ticket_url', true )
+    );
+}
+
 /* ─── Helper: get next upcoming event ────────────────────────── */
 function qt_get_next_event() {
-    $today = date( 'Ymd' );
+    $today = current_time( 'Y-m-d' );
     $q = new WP_Query( [
         'post_type'      => 'qt_event',
+        'post_status'    => 'publish',
         'posts_per_page' => 1,
         'meta_key'       => 'qt_event_date',
         'orderby'        => 'meta_value',

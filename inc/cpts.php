@@ -272,25 +272,72 @@ function qt_leaderboard_meta_box( $post ) {
 /* ─── Save meta ───────────────────────────────────────────────── */
 function qt_save_meta( $post_id ) {
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+    if ( wp_is_post_autosave( $post_id ) ) return;
+    if ( $parent_id = wp_is_post_revision( $post_id ) ) {
+        $post_id = $parent_id;
+    }
     if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
     // Event
     if ( isset( $_POST['qt_event_nonce'] ) && wp_verify_nonce( $_POST['qt_event_nonce'], 'qt_event_save' ) ) {
         if ( isset( $_POST['qt_event_image_id'] ) ) {
-            update_post_meta( $post_id, 'qt_event_image_id', absint( $_POST['qt_event_image_id'] ) );
-        }
-        $event_fields = [
-            'qt_event_date', 'qt_event_time', 'qt_event_venue', 'qt_event_venue_short',
-            'qt_event_price', 'qt_event_seats_left', 'qt_event_ticket_url',
-            'qt_event_wc_product_id', 'qt_event_theme', 'qt_event_badge', 'qt_event_status',
-        ];
-        foreach ( $event_fields as $f ) {
-            if ( isset( $_POST[ $f ] ) ) {
-                update_post_meta( $post_id, $f, sanitize_text_field( $_POST[ $f ] ) );
+            $image_id = absint( $_POST['qt_event_image_id'] );
+            if ( $image_id ) {
+                update_post_meta( $post_id, 'qt_event_image_id', $image_id );
+            } else {
+                delete_post_meta( $post_id, 'qt_event_image_id' );
             }
         }
+
+        $event_fields = [
+            'qt_event_time',
+            'qt_event_venue',
+            'qt_event_venue_short',
+            'qt_event_price',
+            'qt_event_seats_left',
+            'qt_event_theme',
+            'qt_event_badge',
+            'qt_event_status',
+        ];
+
+        foreach ( $event_fields as $field ) {
+            if ( isset( $_POST[ $field ] ) ) {
+                update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
+            }
+        }
+
+        $event_date = qt_normalize_event_date( wp_unslash( $_POST['qt_event_date'] ?? '' ) );
+        if ( $event_date ) {
+            update_post_meta( $post_id, 'qt_event_date', $event_date );
+        } else {
+            delete_post_meta( $post_id, 'qt_event_date' );
+        }
+
+        $ticket_reference = sanitize_text_field( wp_unslash( $_POST['qt_event_ticket_url'] ?? '' ) );
+        if ( $ticket_reference !== '' ) {
+            update_post_meta( $post_id, 'qt_event_ticket_url', $ticket_reference );
+        } else {
+            delete_post_meta( $post_id, 'qt_event_ticket_url' );
+        }
+
+        $submitted_product_id = absint( $_POST['qt_event_wc_product_id'] ?? 0 );
+        $resolved_target      = $ticket_reference !== '' ? qt_resolve_event_ticket_reference( $ticket_reference ) : [ 'product_id' => 0 ];
+        $resolved_product_id  = 0;
+
+        if ( $submitted_product_id && get_post_type( $submitted_product_id ) === 'product' ) {
+            $resolved_product_id = $submitted_product_id;
+        } elseif ( ! empty( $resolved_target['product_id'] ) ) {
+            $resolved_product_id = absint( $resolved_target['product_id'] );
+        }
+
+        if ( $resolved_product_id ) {
+            update_post_meta( $post_id, 'qt_event_wc_product_id', $resolved_product_id );
+        } else {
+            delete_post_meta( $post_id, 'qt_event_wc_product_id' );
+        }
+
         if ( isset( $_POST['qt_event_expect'] ) ) {
-            update_post_meta( $post_id, 'qt_event_expect', sanitize_textarea_field( $_POST['qt_event_expect'] ) );
+            update_post_meta( $post_id, 'qt_event_expect', sanitize_textarea_field( wp_unslash( $_POST['qt_event_expect'] ) ) );
         }
     }
 

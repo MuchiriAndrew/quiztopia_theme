@@ -109,13 +109,14 @@ $shop_url    = function_exists('WC') ? wc_get_page_permalink('shop') : '/shop';
 <?php
 $events_query = new WP_Query([
   'post_type'      => 'qt_event',
+  'post_status'    => 'publish',
   'posts_per_page' => 3,
   'meta_key'       => 'qt_event_date',
   'orderby'        => 'meta_value',
   'order'          => 'ASC',
   'meta_query'     => [[
     'key'     => 'qt_event_date',
-    'value'   => date('Ymd'),
+    'value'   => current_time('Y-m-d'),
     'compare' => '>=',
     'type'    => 'DATE',
   ]],
@@ -144,8 +145,9 @@ $events_query = new WP_Query([
         $ev_seats    = get_post_meta($ev_id, 'qt_event_seats_left', true);
         $ev_badge    = get_post_meta($ev_id, 'qt_event_badge', true);
         $ev_status   = get_post_meta($ev_id, 'qt_event_status', true);
-        $ev_wc_id    = get_post_meta($ev_id, 'qt_event_wc_product_id', true);
-        $ev_url      = $ev_wc_id ? get_permalink($ev_wc_id) : get_permalink();
+        $ev_ticket   = qt_get_event_ticket_target($ev_id);
+        $ev_wc_id    = $ev_ticket['product_id'];
+        $ev_url      = $ev_ticket['url'] ?: get_permalink();
         $ev_img_id   = get_post_meta($ev_id, 'qt_event_image_id', true);
         $ev_thumb    = ($ev_img_id ? wp_get_attachment_image_url($ev_img_id, 'large') : '')
                     ?: get_the_post_thumbnail_url($ev_id, 'large')
