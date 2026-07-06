@@ -287,26 +287,6 @@ function qt_save_meta( $post_id ) {
     }
     if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-    $post = get_post( $post_id );
-    if (
-        $post instanceof WP_Post
-        && $post->post_type === 'qt_event'
-        && strtoupper( $_SERVER['REQUEST_METHOD'] ?? '' ) === 'POST'
-        && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG
-    ) {
-        $qt_keys = array_values( array_filter( array_keys( $_POST ), function( $key ) {
-            return str_starts_with( (string) $key, 'qt_event_' ) || $key === 'qt_event_nonce';
-        } ) );
-
-        error_log(
-            'QT_EVENT_SAVE_DEBUG post=' . $post_id
-            . ' uri=' . ( $_SERVER['REQUEST_URI'] ?? '' )
-            . ' has_nonce=' . ( isset( $_POST['qt_event_nonce'] ) ? 'yes' : 'no' )
-            . ' field_count=' . count( $qt_keys )
-            . ' keys=' . implode( ',', $qt_keys )
-        );
-    }
-
     // Event
     if ( isset( $_POST['qt_event_nonce'] ) && wp_verify_nonce( $_POST['qt_event_nonce'], 'qt_event_save' ) ) {
         if ( isset( $_POST['qt_event_image_id'] ) ) {
@@ -448,6 +428,7 @@ function qt_event_announce_meta_box( $post ) {
     $lead_count = (int) wp_count_posts('qt_lead')->publish;
     $last_sent  = get_post_meta( $post->ID, 'qt_announce_last_sent', true );
     $ev_title   = get_the_title( $post->ID ) ?: 'this event';
+    $is_unsaved = ! $post->ID || $post->post_status === 'auto-draft';
 
     $admin_notice = '';
     if ( isset( $_GET['qt_announce'] ) ) {
@@ -478,19 +459,23 @@ function qt_event_announce_meta_box( $post ) {
     <p style="margin:0 0 12px;font-size:12px;color:#999">Last sent: <?php echo esc_html($last_sent); ?></p>
     <?php endif; ?>
 
-    <?php if ($lead_count > 0) : ?>
-    <form method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+    <?php if ($is_unsaved) : ?>
+    <p style="font-size:13px;color:#999;margin:0">Save the event first, then come back here to email your leads.</p>
+    <?php elseif ($lead_count > 0) : ?>
         <?php wp_nonce_field( 'qt_announce_' . $post->ID, 'qt_announce_nonce' ); ?>
-        <input type="hidden" name="action"   value="qt_send_announcement">
         <input type="hidden" name="event_id" value="<?php echo esc_attr($post->ID); ?>">
         <label for="qt_announce_subject" style="display:block;font-size:12px;font-weight:600;color:#1d2327;margin-bottom:4px">Email subject</label>
         <input type="text" id="qt_announce_subject" name="qt_announce_subject"
                value="<?php echo esc_attr($default_subject); ?>"
                style="width:100%;margin-bottom:10px;padding:6px 8px;border:1px solid #8c8f94;border-radius:3px;font-size:13px">
-        <input type="submit" class="button button-primary" value="Send to all leads →"
+        <button type="submit" class="button button-primary"
+               name="action" value="qt_send_announcement"
+               formaction="<?php echo esc_url(admin_url('admin-post.php')); ?>"
+               formmethod="post" formnovalidate
                style="background:#e0890d;border-color:#c07009;color:#fff"
                onclick="return confirm('Send this announcement to <?php echo esc_js($lead_count); ?> subscriber<?php echo $lead_count !== 1 ? 's' : ''; ?>?')">
-    </form>
+          Send to all leads →
+        </button>
     <?php else : ?>
     <p style="font-size:13px;color:#999;margin:0">No subscribers yet — share the newsletter link to build your list.</p>
     <?php endif; ?>
