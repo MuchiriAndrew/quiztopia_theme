@@ -21,7 +21,7 @@ function qt_register_cpts() {
             'not_found_in_trash' => 'No events in trash',
         ],
         'public'             => true,
-        'show_in_rest'       => true,
+        'show_in_rest'       => false,
         'has_archive'        => true,
         'rewrite'            => [ 'slug' => 'events' ],
         'supports'           => [ 'title', 'editor', 'thumbnail', 'excerpt' ],
@@ -38,7 +38,7 @@ function qt_register_cpts() {
         ],
         'public'       => false,
         'show_ui'      => true,
-        'show_in_rest' => true,
+        'show_in_rest' => false,
         'supports'     => [ 'title' ],
         'menu_icon'    => 'dashicons-format-quote',
         'menu_position'=> 6,
@@ -53,7 +53,7 @@ function qt_register_cpts() {
         ],
         'public'       => false,
         'show_ui'      => true,
-        'show_in_rest' => true,
+        'show_in_rest' => false,
         'supports'     => [ 'title' ],
         'menu_icon'    => 'dashicons-editor-help',
         'menu_position'=> 7,
@@ -68,7 +68,7 @@ function qt_register_cpts() {
         ],
         'public'       => false,
         'show_ui'      => true,
-        'show_in_rest' => true,
+        'show_in_rest' => false,
         'supports'     => [ 'title' ],
         'menu_icon'    => 'dashicons-awards',
         'menu_position'=> 8,
@@ -93,6 +93,15 @@ function qt_register_cpts() {
     ] );
 }
 add_action( 'init', 'qt_register_cpts' );
+
+/* ─── Use classic editor for meta-box driven CPTs ────────────── */
+add_filter( 'use_block_editor_for_post_type', function( $use_block_editor, $post_type ) {
+    if ( in_array( $post_type, [ 'qt_event', 'qt_testimonial', 'qt_faq', 'qt_leaderboard' ], true ) ) {
+        return false;
+    }
+
+    return $use_block_editor;
+}, 10, 2 );
 
 /* ═══════════════════════════════════════════════════════════════
    META BOXES
@@ -277,6 +286,26 @@ function qt_save_meta( $post_id ) {
         $post_id = $parent_id;
     }
     if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+
+    $post = get_post( $post_id );
+    if (
+        $post instanceof WP_Post
+        && $post->post_type === 'qt_event'
+        && strtoupper( $_SERVER['REQUEST_METHOD'] ?? '' ) === 'POST'
+        && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG
+    ) {
+        $qt_keys = array_values( array_filter( array_keys( $_POST ), function( $key ) {
+            return str_starts_with( (string) $key, 'qt_event_' ) || $key === 'qt_event_nonce';
+        } ) );
+
+        error_log(
+            'QT_EVENT_SAVE_DEBUG post=' . $post_id
+            . ' uri=' . ( $_SERVER['REQUEST_URI'] ?? '' )
+            . ' has_nonce=' . ( isset( $_POST['qt_event_nonce'] ) ? 'yes' : 'no' )
+            . ' field_count=' . count( $qt_keys )
+            . ' keys=' . implode( ',', $qt_keys )
+        );
+    }
 
     // Event
     if ( isset( $_POST['qt_event_nonce'] ) && wp_verify_nonce( $_POST['qt_event_nonce'], 'qt_event_save' ) ) {
