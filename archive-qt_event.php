@@ -22,6 +22,7 @@
       $ev_seats    = get_post_meta($ev_id, 'qt_event_seats_left', true);
       $ev_badge    = get_post_meta($ev_id, 'qt_event_badge', true);
       $ev_status   = get_post_meta($ev_id, 'qt_event_status', true);
+      $is_past     = ($ev_status === 'past');
       $ev_ticket   = qt_get_event_ticket_target($ev_id);
       $ev_wc_id    = $ev_ticket['product_id'];
       $ev_url      = $ev_ticket['url'] ?: get_permalink();
@@ -29,15 +30,18 @@
       $ev_thumb    = ($ev_img_id ? wp_get_attachment_image_url($ev_img_id, 'large') : '')
                   ?: get_the_post_thumbnail_url($ev_id, 'large')
                   ?: ($ev_wc_id ? get_the_post_thumbnail_url($ev_wc_id, 'large') : '');
-      $card_class  = 'qt-event-card' . ($is_featured ? ' qt-event-card--featured' : '');
+      $card_class  = 'qt-event-card'
+                  . ($is_featured ? ' qt-event-card--featured' : '')
+                  . ($is_past ? ' qt-event-card--past' : '');
     ?>
     <article class="<?php echo esc_attr($card_class); ?>" data-animate>
       <a href="<?php echo esc_url(get_permalink()); ?>" class="qt-event-card__photo" style="display:block">
         <div class="qt-event-card__photo-img"
              <?php if ($ev_thumb) : ?>style="background-image:url('<?php echo esc_url($ev_thumb); ?>');background-size:cover;background-position:center"<?php endif; ?>>
         </div>
-        <?php if ($ev_badge) : ?><span class="qt-event-card__badge"><?php echo esc_html($ev_badge); ?></span><?php endif; ?>
-        <?php if ($ev_seats && $ev_status !== 'sold-out') : ?><span class="qt-event-card__seats"><?php echo esc_html($ev_seats); ?> seats left</span><?php endif; ?>
+        <?php if ($ev_badge) : ?><span class="qt-event-card__badge"><?php echo esc_html($ev_badge); ?></span>
+        <?php elseif ($is_past) : ?><span class="qt-event-card__badge qt-event-card__badge--past">Past</span><?php endif; ?>
+        <?php if ($ev_seats && !$is_past && $ev_status !== 'sold-out') : ?><span class="qt-event-card__seats"><?php echo esc_html($ev_seats); ?> seats left</span><?php endif; ?>
       </a>
 
       <div class="qt-event-card__body">
@@ -48,7 +52,9 @@
 
       <div class="qt-event-card__footer">
         <div class="qt-event-card__price">
-          <?php if ($ev_status === 'sold-out') : ?>
+          <?php if ($is_past) : ?>
+            <span style="color:var(--qt-muted)">Past event</span>
+          <?php elseif ($ev_status === 'sold-out') : ?>
             <span style="color:var(--qt-muted)">Sold Out</span>
           <?php elseif ($ev_status === 'coming-soon' || !$ev_price) : ?>
             Coming Soon
@@ -56,8 +62,10 @@
             KES <?php echo esc_html(number_format((float)$ev_price)); ?> <span>per person</span>
           <?php endif; ?>
         </div>
-        <?php if ($ev_status === 'sold-out') : ?>
-          <span class="qt-event-card__btn" style="opacity:.5">Sold Out</span>
+        <?php if ($is_past) : ?>
+          <span class="qt-event-card__btn qt-event-card__btn--disabled">Ended</span>
+        <?php elseif ($ev_status === 'sold-out') : ?>
+          <span class="qt-event-card__btn qt-event-card__btn--disabled">Sold Out</span>
         <?php elseif ($ev_status === 'coming-soon') : ?>
           <a href="#newsletter" class="qt-event-card__btn">Notify Me</a>
         <?php else : ?>

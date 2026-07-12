@@ -771,6 +771,23 @@ ul, ol { list-style: none; }
 }
 .qt-event-card__btn:hover { color: var(--qt-accent); border-color: oklch(74% 0.18 65 / 0.5); }
 .qt-event-card__btn:focus-visible { outline: 2px solid var(--qt-focus); outline-offset: 2px; }
+.qt-event-card__btn--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  color: var(--qt-muted);
+}
+.qt-event-card__btn--disabled:hover { color: var(--qt-muted); border-color: var(--qt-rule); }
+
+/* Past-event card treatment */
+.qt-event-card__badge--past {
+  background: oklch(30% 0.010 55);
+  color: var(--qt-ink-2);
+}
+.qt-event-card--past .qt-event-card__photo-img {
+  filter: grayscale(0.7) brightness(0.62);
+}
+.qt-event-card--past .qt-event-card__date,
+.qt-event-card--past .qt-event-card__name { color: var(--qt-ink-2); }
 
 /* ─── EXPERIENCE ────────────────────────────────────────────────── */
 .qt-experience {
@@ -1934,6 +1951,10 @@ ul, ol { list-style: none; }
   color: oklch(68% 0.18 25);
   border-color: oklch(68% 0.18 25 / 0.4);
 }
+.qt-event-single__status-tag--past {
+  color: var(--qt-ink-2);
+  border-color: var(--qt-rule);
+}
 .qt-event-single__title {
   font-family: var(--qt-font-display);
   font-weight: 900;
@@ -2071,6 +2092,7 @@ ul, ol { list-style: none; }
   margin-bottom: var(--qt-xs);
 }
 .qt-event-single__ticket-status--out { color: oklch(68% 0.18 25); }
+.qt-event-single__ticket-status--past { color: var(--qt-ink-2); }
 .qt-event-single__ticket-sub {
   font-size: var(--qt-text-sm);
   color: var(--qt-muted);

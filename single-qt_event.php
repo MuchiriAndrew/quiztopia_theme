@@ -19,6 +19,7 @@
   $buy_url     = $ev_ticket['url'] ?: (function_exists('WC') ? wc_get_page_permalink('shop') : '/shop');
   $is_sold_out = ($ev_status === 'sold-out');
   $is_soon     = ($ev_status === 'coming-soon');
+  $is_past     = ($ev_status === 'past');
 ?>
 
 <article class="qt-event-single">
@@ -32,7 +33,9 @@
         <?php if ($ev_badge) : ?>
         <span class="qt-event-single__badge qt-hero-in qt-hero-in--d1"><?php echo esc_html($ev_badge); ?></span>
         <?php endif; ?>
-        <?php if ($is_sold_out) : ?>
+        <?php if ($is_past) : ?>
+        <span class="qt-event-single__status-tag qt-event-single__status-tag--past qt-hero-in qt-hero-in--d1">Past event</span>
+        <?php elseif ($is_sold_out) : ?>
         <span class="qt-event-single__status-tag qt-event-single__status-tag--out qt-hero-in qt-hero-in--d1">Sold out</span>
         <?php elseif ($is_soon) : ?>
         <span class="qt-event-single__status-tag qt-hero-in qt-hero-in--d1">Coming soon</span>
@@ -134,7 +137,14 @@
 
         <div class="qt-event-single__ticket-box" data-animate="fade-left">
 
-          <?php if ($is_sold_out) : ?>
+          <?php if ($is_past) : ?>
+            <p class="qt-event-single__ticket-status qt-event-single__ticket-status--past">Event ended</p>
+            <p class="qt-event-single__ticket-sub">This event has already taken place.</p>
+            <a href="<?php echo esc_url(get_post_type_archive_link('qt_event')); ?>" class="qt-btn-primary" style="width:100%;justify-content:center;margin-bottom:var(--qt-md)">
+              See upcoming events
+            </a>
+
+          <?php elseif ($is_sold_out) : ?>
             <p class="qt-event-single__ticket-status qt-event-single__ticket-status--out">Sold out</p>
             <p class="qt-event-single__ticket-sub">This event is fully booked.</p>
             <a href="#newsletter" class="qt-btn-primary" style="width:100%;justify-content:center;margin-bottom:var(--qt-md)">
@@ -158,7 +168,9 @@
             </a>
           <?php endif; ?>
 
+          <?php if (!$is_past) : ?>
           <p class="qt-event-single__ticket-note">Non-refundable but transferable.</p>
+          <?php endif; ?>
 
           <?php if ($ev_date_f || $ev_venue) : ?>
           <ul class="qt-event-single__ticket-details">
