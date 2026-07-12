@@ -379,7 +379,7 @@ function qt_gallery_meta_box( $post ) {
       <span style="color:#666;font-size:12px;font-weight:400;margin-left:6px">Click <em>Add Photos</em> to pick images. Drag thumbnails to reorder.</span>
     </p>
 
-    <input type="hidden" name="qt_gallery_images" id="qt_gallery_images" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
+    <input type="hidden" name="qt_gallery_images" id="qt-gallery-images" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
 
     <div id="qt-gallery-previews" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:10px">
       <?php foreach ( $ids as $id ) :
