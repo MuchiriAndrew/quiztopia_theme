@@ -24,6 +24,7 @@ $shop_url = $has_wc ? wc_get_page_permalink('shop') : '/shop';
     <li><a href="<?php echo esc_url(home_url('/#events')); ?>">Events</a></li>
     <li><a href="<?php echo esc_url(home_url('/#experience')); ?>">The Night</a></li>
     <li><a href="<?php echo esc_url(home_url('/#leaderboard')); ?>">Rankings</a></li>
+    <li><a href="<?php echo esc_url(get_post_type_archive_link('qt_gallery') ?: home_url('/gallery/')); ?>">Gallery</a></li>
     <li><a href="<?php echo esc_url(home_url('/#faq')); ?>">FAQ</a></li>
     <?php if ($instagram_url) : ?>
     <li><a href="<?php echo esc_url($instagram_url); ?>" target="_blank" rel="noopener noreferrer">Instagram</a></li>
@@ -53,6 +54,7 @@ $shop_url = $has_wc ? wc_get_page_permalink('shop') : '/shop';
   <a href="<?php echo esc_url(home_url('/#events')); ?>">Events</a>
   <a href="<?php echo esc_url(home_url('/#experience')); ?>">The Night</a>
   <a href="<?php echo esc_url(home_url('/#leaderboard')); ?>">Rankings</a>
+  <a href="<?php echo esc_url(get_post_type_archive_link('qt_gallery') ?: home_url('/gallery/')); ?>">Gallery</a>
   <a href="<?php echo esc_url(home_url('/#faq')); ?>">FAQ</a>
   <?php if ($instagram_url) : ?>
   <a href="<?php echo esc_url($instagram_url); ?>" target="_blank" rel="noopener noreferrer">Instagram</a>

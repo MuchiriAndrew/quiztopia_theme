@@ -29,6 +29,28 @@ function qt_register_cpts() {
         'menu_position'      => 5,
     ] );
 
+    register_post_type( 'qt_gallery', [
+        'labels' => [
+            'name'               => 'Galleries',
+            'singular_name'      => 'Gallery',
+            'add_new_item'       => 'Add New Gallery',
+            'edit_item'          => 'Edit Gallery',
+            'new_item'           => 'New Gallery',
+            'view_item'          => 'View Gallery',
+            'search_items'       => 'Search Galleries',
+            'not_found'          => 'No galleries found',
+            'not_found_in_trash' => 'No galleries in trash',
+            'menu_name'          => 'Galleries',
+        ],
+        'public'        => true,
+        'show_in_rest'  => false,
+        'has_archive'   => true,
+        'rewrite'       => [ 'slug' => 'gallery' ],
+        'supports'      => [ 'title' ],
+        'menu_icon'     => 'dashicons-format-gallery',
+        'menu_position' => 6,
+    ] );
+
     register_post_type( 'qt_testimonial', [
         'labels' => [
             'name'          => 'Testimonials',
@@ -61,17 +83,24 @@ function qt_register_cpts() {
 
     register_post_type( 'qt_leaderboard', [
         'labels' => [
-            'name'          => 'Leaderboard',
-            'singular_name' => 'Leaderboard Entry',
-            'add_new_item'  => 'Add Entry',
-            'edit_item'     => 'Edit Entry',
+            'name'               => 'Leaderboards',
+            'singular_name'      => 'Leaderboard',
+            'add_new_item'       => 'Add New Leaderboard',
+            'edit_item'          => 'Edit Leaderboard',
+            'new_item'           => 'New Leaderboard',
+            'view_item'          => 'View Leaderboard',
+            'search_items'       => 'Search Leaderboards',
+            'not_found'          => 'No leaderboards found',
+            'not_found_in_trash' => 'No leaderboards in trash',
+            'menu_name'          => 'Leaderboard',
         ],
-        'public'       => false,
-        'show_ui'      => true,
-        'show_in_rest' => false,
-        'supports'     => [ 'title' ],
-        'menu_icon'    => 'dashicons-awards',
-        'menu_position'=> 8,
+        'public'        => true,
+        'show_in_rest'  => false,
+        'has_archive'   => true,
+        'rewrite'       => [ 'slug' => 'leaderboard' ],
+        'supports'      => [ 'title' ],
+        'menu_icon'     => 'dashicons-awards',
+        'menu_position' => 8,
     ] );
 
     register_post_type( 'qt_lead', [
@@ -96,12 +125,91 @@ add_action( 'init', 'qt_register_cpts' );
 
 /* ─── Use classic editor for meta-box driven CPTs ────────────── */
 add_filter( 'use_block_editor_for_post_type', function( $use_block_editor, $post_type ) {
-    if ( in_array( $post_type, [ 'qt_event', 'qt_testimonial', 'qt_faq', 'qt_leaderboard' ], true ) ) {
+    if ( in_array( $post_type, [ 'qt_event', 'qt_gallery', 'qt_testimonial', 'qt_faq', 'qt_leaderboard' ], true ) ) {
         return false;
     }
 
     return $use_block_editor;
 }, 10, 2 );
+
+/* ─── Flush rewrite rules once after CPT slugs change ────────── */
+add_action( 'init', function() {
+    if ( get_option( 'qt_rewrite_flushed_v2' ) !== '1' ) {
+        flush_rewrite_rules( false );
+        update_option( 'qt_rewrite_flushed_v2', '1' );
+    }
+}, 20 );
+
+/* ─── Helper: gallery attachment IDs (ordered) ───────────────── */
+function qt_get_gallery_image_ids( $post_id ) {
+    $raw = get_post_meta( $post_id, 'qt_gallery_images', true );
+    if ( ! $raw ) {
+        return [];
+    }
+    return array_values( array_filter( array_map( 'absint', explode( ',', $raw ) ) ) );
+}
+
+/* ─── Helper: leaderboard teams (ranked order) ───────────────── */
+function qt_get_leaderboard_teams( $post_id ) {
+    $teams = get_post_meta( $post_id, 'qt_lb_teams', true );
+
+    if ( is_array( $teams ) && ! empty( $teams ) ) {
+        $clean = [];
+        foreach ( $teams as $t ) {
+            $name = isset( $t['name'] ) ? (string) $t['name'] : '';
+            $note = isset( $t['note'] ) ? (string) $t['note'] : '';
+            if ( $name === '' && $note === '' ) {
+                continue;
+            }
+            $clean[] = [ 'name' => $name, 'note' => $note ];
+        }
+        return $clean;
+    }
+
+    /* Legacy single-team fallback */
+    $legacy_team = get_post_meta( $post_id, 'qt_lb_team', true );
+    if ( $legacy_team ) {
+        return [ [
+            'name' => $legacy_team,
+            'note' => get_post_meta( $post_id, 'qt_lb_status', true ),
+        ] ];
+    }
+
+    return [];
+}
+
+/* ─── Helper: leaderboard subtitle (venue / date line) ───────── */
+function qt_get_leaderboard_subtitle( $post_id ) {
+    return get_post_meta( $post_id, 'qt_lb_subtitle', true )
+        ?: get_post_meta( $post_id, 'qt_lb_venue', true );
+}
+
+/* ─── Render one leaderboard group (title + ranked teams) ────── */
+function qt_render_leaderboard_group( $post_id ) {
+    $subtitle = qt_get_leaderboard_subtitle( $post_id );
+    $teams    = qt_get_leaderboard_teams( $post_id );
+    ?>
+    <div class="qt-lb-group" data-animate>
+      <div class="qt-lb-group__head">
+        <h3 class="qt-lb-group__title"><?php echo esc_html( get_the_title( $post_id ) ); ?></h3>
+        <?php if ( $subtitle ) : ?><span class="qt-lb-group__sub"><?php echo esc_html( $subtitle ); ?></span><?php endif; ?>
+      </div>
+      <?php if ( $teams ) : ?>
+      <ol class="qt-lb-list">
+        <?php foreach ( $teams as $rank => $team ) : ?>
+        <li class="qt-lb-row<?php echo $rank === 0 ? ' qt-lb-row--lead' : ''; ?>">
+          <span class="qt-lb-rank"><?php echo esc_html( $rank + 1 ); ?></span>
+          <span class="qt-lb-name"><?php echo esc_html( $team['name'] ); ?></span>
+          <?php if ( ! empty( $team['note'] ) ) : ?><span class="qt-lb-note"><?php echo esc_html( $team['note'] ); ?></span><?php endif; ?>
+        </li>
+        <?php endforeach; ?>
+      </ol>
+      <?php else : ?>
+      <p class="qt-lb-group__empty">No teams added yet.</p>
+      <?php endif; ?>
+    </div>
+    <?php
+}
 
 /* ═══════════════════════════════════════════════════════════════
    META BOXES
@@ -113,6 +221,9 @@ function qt_add_meta_boxes() {
 
     add_meta_box( 'qt_event_announce', 'Email Leads',
         'qt_event_announce_meta_box', 'qt_event', 'side', 'high' );
+
+    add_meta_box( 'qt_gallery_details', 'Gallery Images',
+        'qt_gallery_meta_box', 'qt_gallery', 'normal', 'high' );
 
     add_meta_box( 'qt_testimonial_details', 'Testimonial Details',
         'qt_testimonial_meta_box', 'qt_testimonial', 'normal', 'high' );
@@ -128,9 +239,28 @@ add_action( 'add_meta_boxes', 'qt_add_meta_boxes' );
 /* ─── Enqueue WP media uploader on event edit screens ────────── */
 add_action( 'admin_enqueue_scripts', function( $hook ) {
     global $post;
-    if ( in_array( $hook, [ 'post.php', 'post-new.php' ] ) && isset( $post ) && $post->post_type === 'qt_event' ) {
-        wp_enqueue_media();
+    if ( in_array( $hook, [ 'post.php', 'post-new.php' ] ) && isset( $post ) ) {
+        if ( in_array( $post->post_type, [ 'qt_event', 'qt_gallery' ], true ) ) {
+            wp_enqueue_media();
+        }
+        if ( in_array( $post->post_type, [ 'qt_gallery', 'qt_leaderboard' ], true ) ) {
+            wp_enqueue_script( 'jquery-ui-sortable' );
+        }
     }
+} );
+
+/* ─── Sortable placeholder + drag styles (admin) ─────────────── */
+add_action( 'admin_head', function() {
+    $screen = get_current_screen();
+    if ( ! $screen || ! in_array( $screen->post_type, [ 'qt_gallery', 'qt_leaderboard' ], true ) ) {
+        return;
+    }
+    echo '<style>
+        .qt-sort-placeholder { border: 2px dashed #c3c4c7 !important; background: #f0f0f1; border-radius: 4px; visibility: visible !important; }
+        .qt-gallery-thumb.qt-sort-placeholder { width: 90px; height: 90px; }
+        .qt-lb-row-edit.qt-sort-placeholder { height: 46px; }
+        .ui-sortable-helper { box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+    </style>';
 } );
 
 /* ─── Event meta box ──────────────────────────────────────────── */
@@ -224,6 +354,113 @@ function qt_event_meta_box( $post ) {
     <?php
 }
 
+/* ─── Gallery meta box ────────────────────────────────────────── */
+function qt_gallery_meta_box( $post ) {
+    wp_nonce_field( 'qt_gallery_save', 'qt_gallery_nonce' );
+
+    $subtitle = esc_attr( get_post_meta( $post->ID, 'qt_gallery_subtitle', true ) );
+    $ids      = qt_get_gallery_image_ids( $post->ID );
+    ?>
+    <p style="color:#666;font-size:12px;margin:0 0 12px">The post <strong>title</strong> is the gallery name — usually the event it belongs to (e.g. "Grand Trivia Night · June 2026").</p>
+
+    <table style="width:100%;border-spacing:0 12px">
+      <tr>
+        <td style="width:180px;padding-right:16px;vertical-align:top;padding-top:6px"><label for="qt_gallery_subtitle"><strong>Subtitle</strong></label></td>
+        <td>
+          <input type="text" name="qt_gallery_subtitle" id="qt_gallery_subtitle" value="<?php echo $subtitle; ?>" style="width:100%;max-width:480px" placeholder="e.g. April 2026 · Wooden Barrels, Nairobi">
+          <p style="color:#666;font-size:12px;margin:4px 0 0">Optional date / venue line shown beneath the title.</p>
+        </td>
+      </tr>
+    </table>
+
+    <hr style="margin:8px 0 12px">
+
+    <p style="margin:0 0 8px"><strong>Photos</strong>
+      <span style="color:#666;font-size:12px;font-weight:400;margin-left:6px">Click <em>Add Photos</em> to pick images. Drag thumbnails to reorder.</span>
+    </p>
+
+    <input type="hidden" name="qt_gallery_images" id="qt_gallery_images" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
+
+    <div id="qt-gallery-previews" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:10px">
+      <?php foreach ( $ids as $id ) :
+        $thumb = wp_get_attachment_image_url( $id, 'thumbnail' );
+        if ( ! $thumb ) continue;
+      ?>
+      <div class="qt-gallery-thumb" data-id="<?php echo esc_attr( $id ); ?>" style="position:relative;width:90px;height:90px;border:1px solid #ddd;border-radius:4px;overflow:hidden;cursor:move;background:#f6f7f7">
+        <img src="<?php echo esc_url( $thumb ); ?>" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none">
+        <button type="button" class="qt-gallery-thumb-remove" aria-label="Remove" style="position:absolute;top:2px;right:2px;width:20px;height:20px;line-height:18px;text-align:center;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;font-size:14px">&times;</button>
+      </div>
+      <?php endforeach; ?>
+    </div>
+
+    <button type="button" class="button button-primary" id="qt-gallery-add">Add Photos</button>
+    <button type="button" class="button" id="qt-gallery-clear"<?php echo $ids ? '' : ' style="display:none"'; ?>>Clear All</button>
+
+    <script>
+    jQuery(function($){
+      var frame;
+      var $previews = $('#qt-gallery-previews');
+      var $field    = $('#qt-gallery-images');
+      var $clear    = $('#qt-gallery-clear');
+
+      function sync(){
+        var ids = [];
+        $previews.find('.qt-gallery-thumb').each(function(){ ids.push($(this).data('id')); });
+        $field.val(ids.join(','));
+        $clear.toggle(ids.length > 0);
+      }
+
+      function addThumb(id, url){
+        if ($previews.find('.qt-gallery-thumb[data-id="'+id+'"]').length) return;
+        var $t = $('<div class="qt-gallery-thumb" data-id="'+id+'" style="position:relative;width:90px;height:90px;border:1px solid #ddd;border-radius:4px;overflow:hidden;cursor:move;background:#f6f7f7">'
+          + '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none">'
+          + '<button type="button" class="qt-gallery-thumb-remove" aria-label="Remove" style="position:absolute;top:2px;right:2px;width:20px;height:20px;line-height:18px;text-align:center;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;font-size:14px">&times;</button>'
+          + '</div>');
+        $previews.append($t);
+      }
+
+      $('#qt-gallery-add').on('click', function(e){
+        e.preventDefault();
+        if (frame){ frame.open(); return; }
+        frame = wp.media({ title: 'Select gallery photos', button: { text: 'Add to gallery' }, multiple: 'add', library: { type: 'image' } });
+        frame.on('select', function(){
+          frame.state().get('selection').each(function(att){
+            att = att.toJSON();
+            var url = (att.sizes && att.sizes.thumbnail) ? att.sizes.thumbnail.url : att.url;
+            addThumb(att.id, url);
+          });
+          sync();
+        });
+        frame.open();
+      });
+
+      $previews.on('click', '.qt-gallery-thumb-remove', function(e){
+        e.preventDefault();
+        $(this).closest('.qt-gallery-thumb').remove();
+        sync();
+      });
+
+      $('#qt-gallery-clear').on('click', function(e){
+        e.preventDefault();
+        $previews.empty();
+        sync();
+      });
+
+      if ($.fn.sortable){
+        $previews.sortable({
+          items: '.qt-gallery-thumb',
+          tolerance: 'pointer',
+          cursor: 'move',
+          forcePlaceholderSize: true,
+          placeholder: 'qt-sort-placeholder',
+          update: sync
+        });
+      }
+    });
+    </script>
+    <?php
+}
+
 /* ─── Testimonial meta box ────────────────────────────────────── */
 function qt_testimonial_meta_box( $post ) {
     wp_nonce_field( 'qt_testimonial_save', 'qt_testimonial_nonce' );
@@ -259,22 +496,96 @@ function qt_faq_meta_box( $post ) {
 /* ─── Leaderboard meta box ────────────────────────────────────── */
 function qt_leaderboard_meta_box( $post ) {
     wp_nonce_field( 'qt_lb_save', 'qt_lb_nonce' );
-    $team   = esc_attr( get_post_meta( $post->ID, 'qt_lb_team',   true ) );
-    $venue  = esc_attr( get_post_meta( $post->ID, 'qt_lb_venue',  true ) );
-    $status = esc_attr( get_post_meta( $post->ID, 'qt_lb_status', true ) );
+
+    $subtitle = esc_attr( qt_get_leaderboard_subtitle( $post->ID ) );
+    $teams    = qt_get_leaderboard_teams( $post->ID );
+    if ( empty( $teams ) ) {
+        $teams = [ [ 'name' => '', 'note' => '' ] ];
+    }
+
+    $render_row = function( $name, $note ) {
+        ?>
+        <div class="qt-lb-row-edit" style="display:flex;gap:8px;align-items:center;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;padding:8px 10px">
+          <span class="qt-lb-handle" title="Drag to reorder" style="cursor:move;color:#8c8f94;font-size:18px;line-height:1;user-select:none">&#9776;</span>
+          <span class="qt-lb-rank" style="min-width:22px;text-align:center;font-weight:700;color:#e0890d"></span>
+          <input type="text" name="qt_lb_team_name[]" value="<?php echo esc_attr( $name ); ?>" placeholder="Team name" style="flex:2 1 180px;min-width:0">
+          <input type="text" name="qt_lb_team_note[]" value="<?php echo esc_attr( $note ); ?>" placeholder="Note / score / status (optional)" style="flex:2 1 180px;min-width:0">
+          <button type="button" class="qt-lb-remove button-link" aria-label="Remove team" style="color:#b32d2e;text-decoration:none;font-size:20px;line-height:1;cursor:pointer">&times;</button>
+        </div>
+        <?php
+    };
     ?>
-    <p style="color:#666;font-size:12px;margin-bottom:8px">The post title is the trivia night name (e.g. "Grand Trivia Night · June 2026").</p>
-    <table style="width:100%;border-spacing:0 10px">
-    <tr><td style="width:140px"><strong>Winning Team</strong></td><td>
-    <input type="text" name="qt_lb_team" value="<?php echo $team; ?>" style="width:100%;max-width:320px" placeholder="e.g. The Trivia Titans">
-    </td></tr>
-    <tr><td><strong>Venue</strong></td><td>
-    <input type="text" name="qt_lb_venue" value="<?php echo $venue; ?>" style="width:100%;max-width:320px" placeholder="e.g. Wooden Barrels">
-    </td></tr>
-    <tr><td><strong>Status</strong></td><td>
-    <input type="text" name="qt_lb_status" value="<?php echo $status; ?>" style="width:100%;max-width:320px" placeholder="e.g. Champions · Sold Out · Past Event">
-    </td></tr>
+    <p style="color:#666;font-size:12px;margin:0 0 12px">The post <strong>title</strong> is the event / trivia night name (e.g. "Grand Trivia Night · June 2026").</p>
+
+    <table style="width:100%;border-spacing:0 12px">
+      <tr>
+        <td style="width:160px;padding-right:16px;vertical-align:top;padding-top:6px"><label for="qt_lb_subtitle"><strong>Subtitle</strong></label></td>
+        <td>
+          <input type="text" name="qt_lb_subtitle" id="qt_lb_subtitle" value="<?php echo $subtitle; ?>" style="width:100%;max-width:480px" placeholder="e.g. Wooden Barrels · June 2026">
+          <p style="color:#666;font-size:12px;margin:4px 0 0">Optional venue / date line shown under the title.</p>
+        </td>
+      </tr>
     </table>
+
+    <hr style="margin:8px 0 12px">
+
+    <p style="margin:0 0 8px"><strong>Teams</strong>
+      <span style="color:#666;font-size:12px;font-weight:400;margin-left:6px">Best team first. Drag the <span style="font-size:14px">&#9776;</span> handle to reorder — the rank number updates automatically.</span>
+    </p>
+
+    <div id="qt-lb-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+      <?php foreach ( $teams as $t ) { $render_row( $t['name'], $t['note'] ); } ?>
+    </div>
+
+    <template id="qt-lb-row-tpl"><?php $render_row( '', '' ); ?></template>
+
+    <button type="button" class="button button-primary" id="qt-lb-add">+ Add Team</button>
+
+    <script>
+    jQuery(function($){
+      var $rows = $('#qt-lb-rows');
+      var tpl   = document.getElementById('qt-lb-row-tpl');
+
+      function renumber(){
+        $rows.children('.qt-lb-row-edit').each(function(i){
+          $(this).find('.qt-lb-rank').text(i + 1);
+        });
+      }
+
+      $('#qt-lb-add').on('click', function(e){
+        e.preventDefault();
+        var node = tpl.content.firstElementChild.cloneNode(true);
+        $rows.append(node);
+        renumber();
+        $(node).find('input').first().focus();
+      });
+
+      $rows.on('click', '.qt-lb-remove', function(e){
+        e.preventDefault();
+        if ($rows.children('.qt-lb-row-edit').length <= 1){
+          $(this).closest('.qt-lb-row-edit').find('input').val('');
+        } else {
+          $(this).closest('.qt-lb-row-edit').remove();
+        }
+        renumber();
+      });
+
+      if ($.fn.sortable){
+        $rows.sortable({
+          handle: '.qt-lb-handle',
+          items: '.qt-lb-row-edit',
+          tolerance: 'pointer',
+          axis: 'y',
+          cursor: 'move',
+          forcePlaceholderSize: true,
+          placeholder: 'qt-sort-placeholder',
+          update: renumber
+        });
+      }
+
+      renumber();
+    });
+    </script>
     <?php
 }
 
@@ -350,6 +661,19 @@ function qt_save_meta( $post_id ) {
         }
     }
 
+    // Gallery
+    if ( isset( $_POST['qt_gallery_nonce'] ) && wp_verify_nonce( $_POST['qt_gallery_nonce'], 'qt_gallery_save' ) ) {
+        update_post_meta( $post_id, 'qt_gallery_subtitle', sanitize_text_field( wp_unslash( $_POST['qt_gallery_subtitle'] ?? '' ) ) );
+
+        $raw_ids = wp_unslash( $_POST['qt_gallery_images'] ?? '' );
+        $ids     = array_values( array_filter( array_map( 'absint', explode( ',', $raw_ids ) ) ) );
+        if ( $ids ) {
+            update_post_meta( $post_id, 'qt_gallery_images', implode( ',', $ids ) );
+        } else {
+            delete_post_meta( $post_id, 'qt_gallery_images' );
+        }
+    }
+
     // Testimonial
     if ( isset( $_POST['qt_testimonial_nonce'] ) && wp_verify_nonce( $_POST['qt_testimonial_nonce'], 'qt_testimonial_save' ) ) {
         update_post_meta( $post_id, 'qt_testimonial_quote',  wp_kses_post( $_POST['qt_testimonial_quote'] ?? '' ) );
@@ -365,29 +689,59 @@ function qt_save_meta( $post_id ) {
 
     // Leaderboard
     if ( isset( $_POST['qt_lb_nonce'] ) && wp_verify_nonce( $_POST['qt_lb_nonce'], 'qt_lb_save' ) ) {
-        update_post_meta( $post_id, 'qt_lb_team',   sanitize_text_field( $_POST['qt_lb_team']   ?? '' ) );
-        update_post_meta( $post_id, 'qt_lb_venue',  sanitize_text_field( $_POST['qt_lb_venue']  ?? '' ) );
-        update_post_meta( $post_id, 'qt_lb_status', sanitize_text_field( $_POST['qt_lb_status'] ?? '' ) );
+        update_post_meta( $post_id, 'qt_lb_subtitle', sanitize_text_field( wp_unslash( $_POST['qt_lb_subtitle'] ?? '' ) ) );
+
+        $names = (array) wp_unslash( $_POST['qt_lb_team_name'] ?? [] );
+        $notes = (array) wp_unslash( $_POST['qt_lb_team_note'] ?? [] );
+        $teams = [];
+        foreach ( $names as $i => $name ) {
+            $name = sanitize_text_field( $name );
+            $note = sanitize_text_field( $notes[ $i ] ?? '' );
+            if ( $name === '' && $note === '' ) {
+                continue;
+            }
+            $teams[] = [ 'name' => $name, 'note' => $note ];
+        }
+
+        if ( $teams ) {
+            update_post_meta( $post_id, 'qt_lb_teams', $teams );
+        } else {
+            delete_post_meta( $post_id, 'qt_lb_teams' );
+        }
+
+        // Retire legacy single-team meta once migrated to the new structure.
+        delete_post_meta( $post_id, 'qt_lb_team' );
+        delete_post_meta( $post_id, 'qt_lb_status' );
+        delete_post_meta( $post_id, 'qt_lb_venue' );
     }
 }
 add_action( 'save_post', 'qt_save_meta' );
 
 /* ─── Leaderboard: admin columns ─────────────────────────────── */
 add_filter( 'manage_qt_leaderboard_posts_columns', function( $cols ) {
-    $cols['lb_team']   = 'Winning Team';
-    $cols['lb_venue']  = 'Venue';
-    $cols['lb_status'] = 'Status';
+    $date = $cols['date'] ?? null;
+    unset( $cols['date'] );
+    $cols['lb_subtitle'] = 'Subtitle';
+    $cols['lb_teams']    = 'Teams';
+    if ( $date ) {
+        $cols['date'] = $date;
+    }
     return $cols;
 } );
 add_action( 'manage_qt_leaderboard_posts_custom_column', function( $col, $post_id ) {
-    if ( $col === 'lb_team'   ) echo esc_html( get_post_meta( $post_id, 'qt_lb_team',   true ) );
-    if ( $col === 'lb_venue'  ) echo esc_html( get_post_meta( $post_id, 'qt_lb_venue',  true ) );
-    if ( $col === 'lb_status' ) echo esc_html( get_post_meta( $post_id, 'qt_lb_status', true ) );
+    if ( $col === 'lb_subtitle' ) {
+        echo esc_html( qt_get_leaderboard_subtitle( $post_id ) );
+    }
+    if ( $col === 'lb_teams' ) {
+        $teams = qt_get_leaderboard_teams( $post_id );
+        $names = array_slice( wp_list_pluck( $teams, 'name' ), 0, 3 );
+        $label = $names ? implode( ', ', array_filter( $names ) ) : '—';
+        if ( count( $teams ) > 3 ) {
+            $label .= ' +' . ( count( $teams ) - 3 );
+        }
+        echo esc_html( $label );
+    }
 }, 10, 2 );
-add_filter( 'manage_edit-qt_leaderboard_sortable_columns', function( $cols ) {
-    $cols['lb_team'] = 'lb_team';
-    return $cols;
-} );
 
 /* ─── Events: show date + venue in admin column ───────────────── */
 add_filter( 'manage_qt_event_posts_columns', function( $cols ) {
@@ -421,6 +775,22 @@ add_action( 'manage_qt_lead_posts_custom_column', function( $col, $post_id ) {
     }
     if ( $col === 'lead_source' )   echo esc_html( get_post_meta( $post_id, 'qt_lead_source', true ) ?: 'newsletter' );
     if ( $col === 'lead_subscribed' ) echo esc_html( get_the_date( 'j M Y', $post_id ) );
+}, 10, 2 );
+
+/* ─── Galleries: photo count admin column ────────────────────── */
+add_filter( 'manage_qt_gallery_posts_columns', function( $cols ) {
+    $date = $cols['date'] ?? null;
+    unset( $cols['date'] );
+    $cols['gallery_photos'] = 'Photos';
+    if ( $date ) {
+        $cols['date'] = $date;
+    }
+    return $cols;
+} );
+add_action( 'manage_qt_gallery_posts_custom_column', function( $col, $post_id ) {
+    if ( $col === 'gallery_photos' ) {
+        echo esc_html( count( qt_get_gallery_image_ids( $post_id ) ) );
+    }
 }, 10, 2 );
 
 /* ─── Announce meta box on event edit screen ─────────────────── */

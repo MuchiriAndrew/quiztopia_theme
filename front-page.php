@@ -295,10 +295,11 @@ $how_steps = [
 <?php
 $lb_query = new WP_Query([
   'post_type'      => 'qt_leaderboard',
-  'posts_per_page' => 10,
+  'posts_per_page' => 3,
   'orderby'        => 'date',
   'order'          => 'DESC',
 ]);
+$lb_archive = get_post_type_archive_link('qt_leaderboard') ?: home_url('/leaderboard/');
 ?>
 <section class="qt-leaderboard" id="leaderboard" aria-labelledby="qt-lb-title">
   <div class="qt-container">
@@ -317,33 +318,19 @@ $lb_query = new WP_Query([
         </p>
       </div>
 
-      <div data-animate data-animate="fade-right">
+      <div data-animate="fade-right">
+        <div class="qt-leaderboard__head">
+          <a href="<?php echo esc_url($lb_archive); ?>" class="qt-leaderboard__view">
+            View full leaderboard
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
         <?php if ($lb_query->have_posts()) : ?>
-        <div class="qt-lb-scroll">
-        <table class="qt-lb-table" aria-label="Trivia night winners">
-          <thead>
-            <tr>
-              <th scope="col">Trivia Night</th>
-              <th scope="col">Team</th>
-              <th scope="col">Venue</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div class="qt-lb-groups" data-stagger>
           <?php while ($lb_query->have_posts()) : $lb_query->the_post();
-            $lb_team   = get_post_meta(get_the_ID(), 'qt_lb_team',   true);
-            $lb_venue  = get_post_meta(get_the_ID(), 'qt_lb_venue',  true);
-            $lb_status = get_post_meta(get_the_ID(), 'qt_lb_status', true);
-          ?>
-            <tr>
-              <td><div class="qt-lb-night"><?php the_title(); ?></div></td>
-              <td><div class="qt-lb-team"><?php echo esc_html($lb_team); ?></div></td>
-              <td class="qt-lb-venue"><?php echo esc_html($lb_venue); ?></td>
-              <td><?php if ($lb_status) : ?><span class="qt-lb-badge"><?php echo esc_html($lb_status); ?></span><?php endif; ?></td>
-            </tr>
-          <?php endwhile; wp_reset_postdata(); ?>
-          </tbody>
-        </table>
+            qt_render_leaderboard_group(get_the_ID());
+          endwhile; wp_reset_postdata(); ?>
         </div>
         <?php else : ?>
         <p style="color:var(--qt-muted);padding-block:var(--qt-2xl)">Hall of Fame coming after the first event.</p>
@@ -371,6 +358,10 @@ $gallery_modifiers = ['--main', '--2', '--3', '--4', '--5'];
 <section class="qt-gallery" aria-labelledby="qt-gallery-title">
   <div class="qt-gallery__head" data-animate>
     <h2 id="qt-gallery-title" class="qt-gallery__title">From the night</h2>
+    <a href="<?php echo esc_url( get_post_type_archive_link( 'qt_gallery' ) ?: home_url('/gallery/') ); ?>" class="qt-gallery__view">
+      View full gallery
+      <span aria-hidden="true">→</span>
+    </a>
   </div>
 
   <div class="qt-gallery__layout" aria-label="Photo gallery from past events">

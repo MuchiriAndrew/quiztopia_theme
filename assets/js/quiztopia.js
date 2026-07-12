@@ -241,6 +241,58 @@
     });
   }
 
+  /* ─── Gallery lightbox ─────────────────────────────────────────── */
+  function initLightbox() {
+    const box = document.getElementById('qt-lightbox');
+    if (!box) return;
+
+    const items = Array.from(document.querySelectorAll('[data-lightbox]'));
+    if (!items.length) return;
+
+    const img     = box.querySelector('.qt-lightbox__img');
+    const btnPrev = box.querySelector('.qt-lightbox__nav--prev');
+    const btnNext = box.querySelector('.qt-lightbox__nav--next');
+    const btnClose = box.querySelector('.qt-lightbox__close');
+    let index = 0;
+
+    function show(i) {
+      index = (i + items.length) % items.length;
+      const link = items[index];
+      const inner = link.querySelector('img');
+      img.src = link.getAttribute('href');
+      img.alt = inner ? inner.alt : '';
+    }
+
+    function open(i) {
+      show(i);
+      box.hidden = false;
+      requestAnimationFrame(() => box.classList.add('is-open'));
+      document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+      box.classList.remove('is-open');
+      document.body.style.overflow = '';
+      setTimeout(() => { box.hidden = true; img.src = ''; }, 220);
+    }
+
+    items.forEach((link, i) => {
+      link.addEventListener('click', (e) => { e.preventDefault(); open(i); });
+    });
+
+    btnPrev.addEventListener('click', () => show(index - 1));
+    btnNext.addEventListener('click', () => show(index + 1));
+    btnClose.addEventListener('click', close);
+    box.addEventListener('click', (e) => { if (e.target === box) close(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (box.hidden) return;
+      if (e.key === 'Escape')     close();
+      if (e.key === 'ArrowLeft')  show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+  }
+
   /* ─── Init ─────────────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
     initCountdown();
@@ -250,5 +302,6 @@
     initNewsletter();
     initNavScroll();
     initQtyStepper();
+    initLightbox();
   });
 })();
