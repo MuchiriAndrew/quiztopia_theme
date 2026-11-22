@@ -2398,11 +2398,12 @@ ul, ol { list-style: none; }
   transition: border-color var(--qt-short) var(--qt-ease-out) !important;
 }
 .woocommerce form .form-row input.input-text:focus-visible,
+.woocommerce form .form-row textarea:focus-visible,
 .woocommerce form .form-row select:focus-visible,
 .woocommerce-page form .form-row input.input-text:focus-visible {
   border-color: var(--qt-accent) !important;
-  outline: 2px solid var(--qt-focus) !important;
-  outline-offset: 2px !important;
+  outline: none !important;
+  outline-offset: 0 !important;
   box-shadow: none !important;
 }
 
@@ -2546,6 +2547,11 @@ ul, ol { list-style: none; }
   width: 100% !important;
   float: none !important;
   clear: both !important;
+}
+.woocommerce ul.products::before,
+.woocommerce ul.products::after {
+  content: none !important;
+  display: none !important;
 }
 .woocommerce ul.products li.product {
   background: var(--qt-paper-2) !important;
@@ -2710,7 +2716,14 @@ ul, ol { list-style: none; }
 }
 .woocommerce form .form-row.woocommerce-validated input.input-text,
 .woocommerce form .form-row.woocommerce-validated select {
-  border-color: var(--qt-success) !important;
+  border-color: var(--qt-rule) !important;
+}
+/* One border indicates focus; invalid fields retain their red error border. */
+.woocommerce form .form-row:not(.woocommerce-invalid) input.input-text:focus,
+.woocommerce form .form-row:not(.woocommerce-invalid) textarea:focus,
+.woocommerce form .form-row:not(.woocommerce-invalid) select:focus {
+  border-color: var(--qt-accent) !important;
+  outline: none !important;
 }
 .woocommerce form .form-row .required { color: var(--qt-accent) !important; }
 

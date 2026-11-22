@@ -40,7 +40,7 @@ function qt_enqueue() {
     // Main stylesheet
     wp_enqueue_style( 'quiztopia',
         get_template_directory_uri() . '/assets/css/quiztopia.css',
-        [ 'qt-google-fonts' ], $ver );
+        [ 'qt-google-fonts' ], (string) filemtime( get_template_directory() . '/assets/css/quiztopia.css' ) );
 
     // Main JS
     wp_enqueue_script( 'quiztopia',
@@ -323,6 +323,31 @@ add_filter( 'woocommerce_output_related_products_args', function( $args ) {
 
 /* ─── Checkout: suppress default order review heading ────────── */
 add_filter( 'woocommerce_order_review_heading', '__return_empty_string' );
+
+add_filter( 'woocommerce_checkout_fields', function( $fields ) {
+    if ( isset( $fields['billing']['billing_phone'] ) ) {
+        $fields['billing']['billing_phone']['placeholder'] = '254XXXXXXXXX';
+        $fields['billing']['billing_phone']['description'] = __( 'Use 254113005226, 0113 005 226 or +254 113 005 226.', 'quiztopia' );
+        $fields['billing']['billing_phone']['custom_attributes']['inputmode'] = 'tel';
+    }
+    return $fields;
+}, 1000 );
+
+add_filter( 'woocommerce_checkout_posted_data', function( $data ) {
+    if ( isset( $data['billing_phone'] ) && class_exists( 'WC_Gateway_Tumizi' ) ) {
+        $phone = WC_Gateway_Tumizi::normalize_phone( $data['billing_phone'] );
+        if ( $phone ) {
+            $data['billing_phone'] = $phone;
+        }
+    }
+    return $data;
+} );
+
+add_action( 'woocommerce_after_checkout_validation', function( $data, $errors ) {
+    if ( ! empty( $data['billing_phone'] ) && class_exists( 'WC_Gateway_Tumizi' ) && ! WC_Gateway_Tumizi::normalize_phone( $data['billing_phone'] ) ) {
+        $errors->add( 'billing_phone_kenyan', __( 'Enter a valid Kenyan mobile phone number, for example 254113005226.', 'quiztopia' ), [ 'id' => 'billing_phone' ] );
+    }
+}, 10, 2 );
 
 /* ─── Shop: hide sort dropdown & result count ─────────────────── */
 remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
