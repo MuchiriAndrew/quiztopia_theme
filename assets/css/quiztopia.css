@@ -2332,6 +2332,85 @@ ul, ol { list-style: none; }
 }
 .woocommerce-error { border-top-color: var(--qt-error) !important; }
 
+.woocommerce .qt-checkout-notice {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  padding: 20px !important;
+  margin: 0 0 28px !important;
+  border: 1px solid color-mix(in oklch, var(--qt-error) 30%, var(--qt-rule)) !important;
+  border-left: 3px solid var(--qt-error) !important;
+  background: color-mix(in oklch, var(--qt-error) 5%, var(--qt-paper-2)) !important;
+  border-radius: 6px !important;
+  font-size: 14px;
+  line-height: 1.6;
+  scroll-margin-top: var(--qt-nav-offset);
+}
+.woocommerce .qt-checkout-notice::before,
+.woocommerce .qt-checkout-notice::after {
+  content: none !important;
+}
+.woocommerce .qt-checkout-notice__icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--qt-error);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.woocommerce .qt-checkout-notice .qt-checkout-notice__title {
+  margin: 0 0 4px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: var(--qt-ink);
+  font-family: var(--qt-font-body);
+  font-size: 15px !important;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.woocommerce .qt-checkout-notice__messages {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.woocommerce .qt-checkout-notice__messages li {
+  margin: 0;
+  padding: 0;
+  color: var(--qt-ink-2);
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  overflow-wrap: anywhere;
+}
+.woocommerce .qt-checkout-notice__messages li + li { margin-top: 6px; }
+.woocommerce .qt-checkout-notice a:not(.button) {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--qt-rule);
+  text-underline-offset: 3px;
+}
+.woocommerce .qt-checkout-notice a:not(.button):hover { color: var(--qt-ink); }
+.woocommerce .qt-checkout-notice:focus-visible {
+  outline: 2px solid var(--qt-error);
+  outline-offset: 3px;
+}
+.woocommerce-NoticeGroup-checkout { scroll-margin-top: var(--qt-nav-offset); }
+.woocommerce form .checkout-inline-error-message {
+  margin-top: 8px;
+  color: var(--qt-error) !important;
+  font-size: 13px;
+  line-height: 1.5;
+}
+body.woocommerce-checkout .woocommerce-notices-wrapper:has(.woocommerce-error) {
+  display: block !important;
+}
+
 /* Buttons */
 .woocommerce .button,
 .woocommerce-page .button,
