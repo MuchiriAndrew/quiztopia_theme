@@ -1,6 +1,18 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+add_filter( 'woocommerce_email_subject_customer_completed_order', static function ( $subject, $order ) {
+    if ( ! $order instanceof WC_Order ) {
+        return $subject;
+    }
+
+    return sprintf( __( 'You’re in! Quiztopia order #%s is complete', 'quiztopia' ), $order->get_order_number() );
+}, 20, 2 );
+
+add_filter( 'woocommerce_email_heading_customer_completed_order', static function ( $heading ) {
+    return __( 'You’re in!', 'quiztopia' );
+}, 20 );
+
 /* ═══════════════════════════════════════════════════════════════
    BRAND EMAIL TEMPLATES
    Brand colours (email-safe hex equivalents of CSS oklch values):
