@@ -77,6 +77,7 @@ add_filter( 'wp_enqueue_scripts', function() {
 require_once get_template_directory() . '/inc/cpts.php';
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/email-templates.php';
+require_once get_template_directory() . '/inc/tumizi-woocommerce.php';
 
 /* ─── Helpers: event dates + ticket targets ──────────────────── */
 function qt_normalize_event_date( $raw_date ) {
