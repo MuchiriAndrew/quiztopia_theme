@@ -45,7 +45,7 @@ function qt_tumizi_ticket_order( $is_ticket_order, $order ) {
 	if ( $is_ticket_order || ! $order instanceof WC_Order || ! $order->get_item_count() ) return $is_ticket_order;
 	foreach ( $order->get_items() as $item ) {
 		$product = $item->get_product();
-		if ( ! $product || ! $product->is_virtual() || ! qt_tumizi_product_events( $product->get_id() ) ) return false;
+		if ( ! $product || ! qt_tumizi_product_events( $product->get_parent_id() ?: $product->get_id() ) ) return false;
 	}
 	return true;
 }
